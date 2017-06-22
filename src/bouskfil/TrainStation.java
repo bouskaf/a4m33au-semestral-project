@@ -9,34 +9,52 @@ import java.util.Map;
  */
 public class TrainStation {
 
-    private Map map;
+    private HashMap<String, Node> map;
     private String name;
     private ArrayList<Node> ins;
     private ArrayList<Node> outs;
     private ArrayList<Node> crossings;
 
-    public TrainStation(String name, Map map) {
+    public TrainStation(String name, HashMap<String, Node> map) {
         this.name = name;
         this.map = map;
+        this.ins = new ArrayList<>();
+        this.outs = new ArrayList<>();
+        this.crossings = new ArrayList<>();
         generateInsOutsCrossings();
     }
 
     private void generateInsOutsCrossings(){
-        for (Object node : this.map.values()) {
+        for (Node node : this.map.values()) {
             if (node.getPred().size() == 0) {
-                node.setIn(true);
-            }
-            if (node.getNext().size() == 0) {
-                node.setOut(true);
-            }
-            if (node.getNext().size() > 1) {
-                node.setCrossing(true);
+                ins.add(node);
+            } else if (node.getNext().size() == 0) {
+                outs.add(node);
+            } else if (node.getNext().size() > 1) {
+                crossings.add(node);
             }
         }
     }
 
+    public HashMap<String, Node> getMap() {
+        return map;
+    }
 
+    public String getName() {
+        return name;
+    }
 
+    public ArrayList<Node> getIns() {
+        return ins;
+    }
+
+    public ArrayList<Node> getOuts() {
+        return outs;
+    }
+
+    public ArrayList<Node> getCrossings() {
+        return crossings;
+    }
 }
 
 class Node {
@@ -77,5 +95,21 @@ class Node {
 
     public void setCrossing(boolean crossing) {
         this.crossing = crossing;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public boolean isIn() {
+        return in;
+    }
+
+    public boolean isOut() {
+        return out;
+    }
+
+    public boolean isCrossing() {
+        return crossing;
     }
 }
