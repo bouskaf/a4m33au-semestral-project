@@ -2,4 +2,8 @@ digraph nadrazi {
   in -> v;
   v -> out1;
   v -> out2;
+  in -> 1;
+  1 -> 2;
+  2 -> 3;
+  3 -> out1;
 }
