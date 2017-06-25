@@ -1,19 +1,24 @@
 package bouskfil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by mac on 21.06.17.
  */
 public class TrainStation {
 
-    private HashMap<String, Node> map;
     private String name;
+
+    private HashMap<String, Node> map;
+
     private ArrayList<Node> ins;
     private ArrayList<Node> outs;
     private ArrayList<Node> crossings;
+
+    private ArrayList<Stack<Node>> paths;
+    private Stack<Node> tempPath;
+    private Set<Node> onPath;
+
 
     public TrainStation(String name, HashMap<String, Node> map) {
         this.name = name;
@@ -21,19 +26,49 @@ public class TrainStation {
         this.ins = new ArrayList<>();
         this.outs = new ArrayList<>();
         this.crossings = new ArrayList<>();
+        this.paths = new ArrayList<>();
+        this.tempPath = new Stack<>();
+        this.onPath = new HashSet<>();
         generateInsOutsCrossings();
+        generatePaths();
     }
 
     private void generateInsOutsCrossings(){
         for (Node node : this.map.values()) {
             if (node.getPred().size() == 0) {
                 ins.add(node);
-            } else if (node.getNext().size() == 0) {
+            }
+            if (node.getNext().size() == 0) {
                 outs.add(node);
-            } else if (node.getNext().size() > 1) {
+            }
+            if (node.getNext().size() > 1) {
                 crossings.add(node);
             }
         }
+    }
+
+    private void generatePaths() {
+        for (Node start : this.ins) {
+            for (Node end : this.outs) {
+                createPath(start, end);
+            }
+        }
+    }
+
+    private void createPath(Node start, Node end) {
+        tempPath.push(start);
+        onPath.add(start);
+        if (start.getName().equals(end.getName())) {
+            paths.add((Stack<Node>) tempPath.clone());
+        } else {
+            for (Node next : start.getNext()) {
+                if (!onPath.contains(next)) {
+                    createPath(next, end);
+                }
+            }
+        }
+        tempPath.pop();
+        onPath.remove(start);
     }
 
     public HashMap<String, Node> getMap() {
@@ -54,6 +89,10 @@ public class TrainStation {
 
     public ArrayList<Node> getCrossings() {
         return crossings;
+    }
+
+    public ArrayList<Stack<Node>> getPaths() {
+        return paths;
     }
 }
 
@@ -111,5 +150,10 @@ class Node {
 
     public boolean isCrossing() {
         return crossing;
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
     }
 }

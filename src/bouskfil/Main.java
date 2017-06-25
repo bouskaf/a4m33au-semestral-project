@@ -10,12 +10,13 @@ import java.util.HashMap;
 public class Main {
 
     public static void main(String[] args) {
-	    TrainStation trainStation = parseInput("nadr1.txt");
-        Axioms axioms = new Axioms(trainStation, "out.p");
-        axioms.createAxioms();
+        String fileName = "nadr1";
+
+	    TrainStation trainStation = parseInput(fileName + ".txt");
+        Axioms axioms = new Axioms(trainStation, fileName + ".p");
 
 
-        System.out.println("");
+
     }
 
     private static TrainStation parseInput(String fileName){
@@ -73,6 +74,5 @@ public class Main {
         }
         return null;
     }
-
 
 }

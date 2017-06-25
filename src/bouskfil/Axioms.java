@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Stack;
 
 /**
  * Created by mac on 21.06.17.
@@ -18,15 +19,37 @@ public class Axioms {
     public Axioms(TrainStation trainStation, String name) {
         this.trainStation = trainStation;
         this.name = name;
+        createAxioms();
     }
+
+    private void writeToFile(String content, boolean append) {
+
+        try {
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(new File(preFolder + name), append));
+            bufferedWriter.write(content);
+            bufferedWriter.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public void createAxioms() {
-       // printLinearOrder();
-       // printPhysicalRestrictions();
-       // printPhysicalStructure();
-         printDomainRestrictions();
+        printLinearOrder();
+        printPhysicalRestriction();
+        printDomainRestriction();
+        printSwitchesRestriction();
+        printMoveRestriction();
+        printOccupiedRestriction();
+        printPathRestriction();
+        printOpenNodeRestriction();
+
+        //printSwitchCritical();
+        //printBlockCritical();
+        printCollisionCritical();
 
     }
+
 
     private void printLinearOrder() {
         StringBuilder sb = new StringBuilder();
@@ -35,33 +58,27 @@ public class Axioms {
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
         // antisymmetry
-        sb.append("fof(antisymmetry, axiom, (![X, Y]: ((less(X, Y) & less(Y, X)) => (X = Y)))).\n\n");
+        sb.append("fof(antisymmetry, axiom, (![X, Y]: ((less(X, Y) & less(Y, X)) => (X = Y)))).\n");
 
         // transitivity
-        sb.append("fof(transitivity, axiom, (![X, Y, Z]: ((less(X, Y) & less(Y, Z)) => less(X, Z)))).\n\n");
+        sb.append("fof(transitivity, axiom, (![X, Y, Z]: ((less(X, Y) & less(Y, Z)) => less(X, Z)))).\n");
 
         // totality
-        sb.append("fof(totality, axiom, (![X, Y]: (less(X, Y) | less(Y, X)))).\n\n");
+        sb.append("fof(totality, axiom, (![X, Y]: (less(X, Y) | less(Y, X)))).\n");
 
         // succ
-        sb.append("fof(succ, axiom, (![X]: (less(X, succ(X)) & (![Y]: (less(Y, X) | less(succ(X), Y)))))).\n\n");
+        sb.append("fof(succ, axiom, (![X]: (less(X, succ(X)) & (![Y]: (less(Y, X) | less(succ(X), Y)))))).\n");
 
         // pred
-        sb.append("fof(pred,axiom, (![X]: ((pred(succ(X)) = X) & (succ(pred(X)) = X)))).\n\n");
+        sb.append("fof(pred, axiom, (![X]: ((pred(succ(X)) = X) & (succ(pred(X)) = X)))).\n\n\n");
 
-        try {
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(new File(preFolder + name), false));
-            bufferedWriter.write(sb.toString());
-            bufferedWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        writeToFile(sb.toString(), false);
     }
 
-    private void printPhysicalRestrictions() {
+    private void printPhysicalRestriction() {
         StringBuilder sb = new StringBuilder();
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-        sb.append("%---------------------------- Physical restrictions of the train station -------------------------------%\n");
+        sb.append("%---------------------------- Physical restriction of the train station -------------------------------%\n");
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
         // Train is at certain time only in one place
@@ -118,67 +135,20 @@ public class Axioms {
 
         // Train enters the station as soon as it is possible
         sb.append("% Train enters the station as soon as it is possible.\n");
-        sb.append("fof(train_enters, axiom, ((?[Train, N1]: ![T2, N2, T1] : ((~at(T2, Train, N2) & ~enter(T2, Train, N2)) & ((empty_node(T2, N1)) & is_input(N1)) & ~at(T1, Train, N2) & less(T1, T2)) => enter(succ(T2), Train,N1)))).\n\n");
+        sb.append("fof(train_enters, axiom, ((?[Train, N1]: ![T2, N2, T1] : ((~at(T2, Train, N2) & ~enter(T2, Train, N2)) & ((empty_node(T2, N1)) & is_input(N1)) & ~at(T1, Train, N2) & less(T1, T2)) => enter(succ(T2), Train,N1)))).\n\n\n");
 
-        try {
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(new File(preFolder + name), false));
-            bufferedWriter.write(sb.toString());
-            bufferedWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        writeToFile(sb.toString(), true);
     }
 
-    private void printPhysicalStructure() {
+    private void printDomainRestriction() {
         StringBuilder sb = new StringBuilder();
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-        sb.append("%------------------------------- Physical model of the train station -----------------------------------%\n");
-        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
-        for (Node node : trainStation.getMap().values()) {
-            sb.append("fof(at_");
-            sb.append(node.getName());
-            sb.append(", axiom, ![T, Train]: (\n    at(succ(T), Train, ");
-            sb.append(node.getName());
-            sb.append(") <=> (\n");
-            if (node.isIn()) {
-                sb.append("    enter(T, Train, ");
-                sb.append(node.getName());
-                sb.append(") | (at(T, Train, ");
-                sb.append(node.getName());
-                sb.append(") & ~open(T, ");
-                sb.append(node.getName());
-                sb.append("))\n    )\n");
-            } else {
-                for (int i = 0; i < node.getPred().size(); i++) {
-                    Node pred = node.getPred().get(i);
-                    sb.append("    (at(T, Train, ");
-                    sb.append(pred.getName());
-                    sb.append(")");
-                    sb.append((pred.isIn()) ? " & open(T, " + pred.getName() + ")" : "");
-                    sb.append((pred.isCrossing()) ? " & switch(T, " + pred.getName() + ") = " + node.getName() + ")" : "");
-                    sb.append((i == node.getPred().size() - 1) ? "    \n)" : " |\n");
-                }
-            }
-            sb.append(")).\n\n");
-        }
-
-        try {
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(new File(preFolder + name), false));
-            bufferedWriter.write(sb.toString());
-            bufferedWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void printDomainRestrictions() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-        sb.append("%---------------------------------- Domain restrictions of symbols -------------------------------------%\n");
+        sb.append("%---------------------------------- Domain restriction of symbols -------------------------------------%\n");
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
         // Restriction for at values
-        sb.append("fof(at_restriction, axiom, (![T, Train, N]: (at(T, Train, N) => (");
+        sb.append("% Restriction for at values.\n");
+        sb.append("fof(at_values, axiom, (![T, Train, N]: (at(T, Train, N) => (");
         int size = trainStation.getMap().keySet().size();
         int i = 0;
         for (String key : trainStation.getMap().keySet()) {
@@ -187,21 +157,9 @@ public class Axioms {
         }
         sb.append("))).\n\n");
 
-        // Nodes cannot be equal
-        ArrayList<String> names = new ArrayList<>(trainStation.getMap().keySet());
-        sb.append("fof(distinct_nodes, axiom, (");
-        size = names.size();
-        for (int j = 0; j < size - 1; j++) {
-            for (int k = j + 1; k < size; k++) {
-                sb.append("(" + names.get(j) + " != " + names.get(k) + ")");
-                sb.append(((j == size - 2) ? "" : " & "));
-                //sb.append(((k == size - 1) ? "\n" : ""));
-            }
-        }
-        sb.append(")).\n\n");
-
         // Restriction for occupied values
-        sb.append("fof(occupied_restriction, axiom, (![T, Train, N]: (occupied(T, Train, N) => (");
+        sb.append("% Restriction for occupied values.\n");
+        sb.append("fof(occupied_values, axiom, (![T, Train, N]: (occupied(T, Train, N) => (");
         size = trainStation.getMap().keySet().size();
         i = 0;
         for (String key : trainStation.getMap().keySet()) {
@@ -210,39 +168,244 @@ public class Axioms {
         }
         sb.append("))).\n\n");
 
-
-
-
-
-
-        sb.append("fof(open_restr, axiom, ![T, N]: (\n");
-        sb.append("    open(T, N) => (");
-        size = trainStation.getIns().size();
-        String next;
-        for (int j = 0; j < size; j++) {
-            next = trainStation.getIns().get(j).getName();
-            sb.append("(N = " + next + ")" + ((j == size - 1) ? ")\n" : " | "));
+        // Nodes cannot be equal
+        ArrayList<String> names = new ArrayList<>(trainStation.getMap().keySet());
+        sb.append("% Nodes can not be equal.\n");
+        sb.append("fof(distinct_nodes, axiom, (");
+        size = names.size();
+        for (int j = 0; j < size - 1; j++) {
+            for (int k = j + 1; k < size; k++) {
+                sb.append("(" + names.get(j) + " != " + names.get(k) + ")");
+                sb.append(((j == size - 2) ? "" : " & "));
+            }
         }
         sb.append(")).\n\n");
 
 
-        sb.append("fof(gate_restr, axiom, ![Train]: (\n");
-        sb.append("    open(T, N) => (");
+        // Train can enter only in input nodes
+        sb.append("% Train can enter only in input nodes.\n");
+        sb.append("fof(enter_values, axiom, (![T, Train, N]: (enter(T, Train, N) => (");
         size = trainStation.getIns().size();
-        for (int j = 0; j < size; j++) {
-            next = trainStation.getIns().get(j).getName();
-            sb.append("(gate(Train) = " + next + ")" + ((j == size - 1) ? ")\n" : " | "));
+        i = 0;
+        for (Node node : trainStation.getIns()) {
+            i++;
+            sb.append("(N = " + node.getName() + ")" + ((i == size) ? ")" : " | "));
         }
-        sb.append(")).\n\n");
+        sb.append("))).\n\n");
 
 
-
-        try {
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(new File(preFolder + name), false));
-            bufferedWriter.write(sb.toString());
-            bufferedWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
+        // Only true for input nodes
+        sb.append("% Only true for input nodes.\n");
+        sb.append("fof(input_node, axiom, (![N]: (input_node(N) => (");
+        size = trainStation.getIns().size();
+        i = 0;
+        for (Node node : trainStation.getIns()) {
+            i++;
+            sb.append("(N = " + node.getName() + ")" + ((i == size) ? ")" : " | "));
         }
+        sb.append("))).\n\n");
+
+        // Only input nodes can be open
+        sb.append("% Only input nodes can be open.\n");
+        sb.append("fof(open_restriction, axiom, (![T, N]: (open(T, N) => is_input(N)))).\n\n");
+
+
+        // Train can exit only in exit nodes
+        sb.append("% Train can exit only in exit nodes.\n");
+        sb.append("fof(goal_values, axiom, (![Train]: (");
+        size = trainStation.getOuts().size();
+        i = 0;
+        for (Node node : trainStation.getOuts()) {
+            i++;
+            sb.append("(goal(Train) = " + node.getName() + ")" + ((i == size) ? ")" : " | "));
+        }
+        sb.append(")).\n\n\n");
+
+        writeToFile(sb.toString(), true);
+    }
+
+    private void printSwitchesRestriction() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+        sb.append("%------------------------------------ Switches values restriction --------------------------------------%\n");
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
+
+        for (Node node : trainStation.getMap().values()) {
+            if (!node.isOut()) {
+                sb.append("fof(switch_" + node.getName() + "_value, axiom, (![T]: (");
+                int i = 0;
+
+                for (Node succ : node.getNext()) {
+                    i++;
+                    sb.append("(switch(T, " + node.getName() + ") = " + succ.getName() + ")" + ((i == node.getNext().size()) ? "" : " | "));
+                }
+                sb.append("))).\n");
+            }
+        }
+        sb.append("\n\n");
+
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+        sb.append("%----------------------------------------- Switches settings -------------------------------------------%\n");
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
+
+        for (Stack<Node> path : trainStation.getPaths()) {
+            Node end = path.get(path.size() - 1);
+            for (int i = 0; i < path.size() - 1; i++) {
+                sb.append("fof(switch_" + path.get(i).getName() + "_" + end.getName() + ", axiom, ");
+                sb.append("(![T, Train]: ((occupied(T, Train, " + path.get(i).getName() + ") & (goal(Train) = " + end.getName() + "))");
+                sb.append(" => ");
+                sb.append("(switch(T, " + path.get(i).getName() + ") = " + path.get(i + 1).getName() + ")))).\n");
+            }
+            sb.append("\n");
+        }
+        sb.append("\n");
+
+        writeToFile(sb.toString(), true);
+    }
+
+    private void printMoveRestriction() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+        sb.append("%------------------------------------------ Move restriction -------------------------------------------%\n");
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
+
+        for (Node node : trainStation.getIns()) {
+            sb.append("fof(move_input_no_change_" + node.getName() + ", axiom, (![T, Train]: (enter(T, Train, " + node.getName() + ") | (at(T, Train, ");
+            sb.append(node.getName() + ") & ~open(T, " + node.getName() + "))) => at(succ(T), Train, " + node.getName() + "))).\n");
+
+            for (Node next : node.getNext()) {
+                sb.append("fof(move_include_will_input_from_" + node.getName() + "_to_" + next.getName() + ", axiom, (![T, Train]: (((at(T, Train, ");
+                sb.append(node.getName() + ") & open(T, " + node.getName() + ") & will_move(T, Train)) => (at(succ(T), Train, " + next.getName() + ")))");
+                sb.append(" | ((at(T, Train, " + node.getName() + ") & open(T, " + node.getName() + ") & ~will_move(T, Train)) => at(succ(T), Train, " + node.getName() + "))))).\n");
+            }
+        }
+        sb.append("\n");
+
+        for (Node node : trainStation.getOuts()) {
+            sb.append("fof(move_out_stay_or_leave_" + node.getName() + ", axiom, (![T, Train]: (((at(T, Train, " + node.getName() + ") & ~will_move(T, Train))");
+            sb.append(" => at(succ(T), Train, " + node.getName() + ")) | ((at(T, Train, " + node.getName() + ") & will_move(T, Train)) => (![N]: (~at(succ(T), Train, N))))))).\n");
+        }
+        sb.append("\n");
+
+        for (Node node : trainStation.getCrossings()) {
+            for (Node next : node.getNext()) {
+                sb.append("fof(move_switch_include_will_from_" + node.getName() + "_to_" + next.getName() + ", axiom, (![T, Train]: (((at(T, Train, ");
+                sb.append(node.getName() + ") & (switch(T, " + node.getName() + ") = " + next.getName() + ") & ~will_move(T, Train)) => (at(succ(T), Train, ");
+                sb.append(node.getName() + "))) | ((at(T, Train, " + node.getName() + ") & (switch(T, " + node.getName() + ") = " + next.getName() + ") & ");
+                sb.append("will_move(T, Train)) => (at(succ(T), Train, " + next.getName() + ")))))).\n");
+            }
+        }
+        sb.append("\n\n");
+
+        writeToFile(sb.toString(), true);
+
+    }
+
+    private void printOccupiedRestriction() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+        sb.append("%---------------------------------------- Occupied restriction -----------------------------------------%\n");
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
+
+
+
+
+    }
+
+    private void printPathRestriction() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+        sb.append("%------------------------------------------ Path restriction -------------------------------------------%\n");
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
+
+        ArrayList<String> list = new ArrayList<>();
+        for (Stack<Node> path : trainStation.getPaths()) {
+            String string = "((N1 = " + path.get(0).getName() + ") & (N2 = " + path.get(path.size() - 1).getName() + "))";
+            if (!list.contains(string)) {
+                list.add(string);
+            }
+        }
+        sb.append("% Restriction for path_open values.\n");
+        sb.append("fof(open_values, axiom, (![T, Train, N1, N2]: (path_open(T, Train, N1, N2) => (");
+        int i = 0;
+        for (String s : list) {
+            sb.append(s + (i == list.size() - 1 ? "" : " | "));
+            i++;
+        }
+        sb.append(")))).\n\n");
+
+        sb.append("% No node can be occupied for given path.\n");
+        for (Stack<Node> path : trainStation.getPaths()) {
+            Node start = path.get(0);
+            Node end = path.get(path.size() - 1);
+
+            sb.append("fof(path_open_from_" + start.getName() + "_to_" + end.getName() + ", axiom, (![T, Train, OtherTrain]: ");
+            sb.append("(path_open(T, Train, " + start.getName() + ", " + end.getName() + ") <=> (at(T, Train, " + start.getName() + ") & ");
+            sb.append("(goal(Train) = " + end.getName() + ") & ");
+
+            list = new ArrayList<>();
+            for (Node node : path) {
+                String string = "(~occupied(T, OtherTrain, " + node.getName() + ") | (Train = OtherTrain))";
+                list.add(string);
+            }
+            i = 0;
+            for (String string : list) {
+                sb.append(string + (i == list.size() - 1 ? "" : " & "));
+                i++;
+            }
+            sb.append(")))).\n");
+        }
+        sb.append("\n");
+
+        writeToFile(sb.toString(), true);
+    }
+
+    private void printOpenNodeRestriction() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+        sb.append("%---------------------------------------- Open node restriction ----------------------------------------%\n");
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
+
+        for (Node node : trainStation.getIns()) {
+            sb.append("fof(" + node.getName() + "_open, axiom, (![T]: (open(T, " + node.getName() + ") <=> (?[Train]: (path_open(T, Train, ");
+            sb.append(node.getName() + ", goal(Train))");
+        }
+        sb.append("))))).\n\n\n");
+
+        writeToFile(sb.toString(), true);
+    }
+
+
+    public void printSwitchCritical() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+        sb.append("%-------------------------- Train is in switch node and the switch is changed --------------------------%\n");
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
+
+        sb.append("fof(switch_critical, conjecture, (![T, Train, N1, N2]: (((at(T, Train, N1)) & (switch(T, N1) = N2)) => ~(at(succ(T), Train, N1) & (switch(succ(T), N1) != N2))))).\n");
+
+        writeToFile(sb.toString(), true);
+    }
+
+    public void printBlockCritical() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+        sb.append("%------------------------------ The input node remains permanently closed ------------------------------%\n");
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
+
+        sb.append("fof(block_critical, conjecture, (![N]: (is_input(N) => notBlocked(N)))).\n");
+
+        writeToFile(sb.toString(), true);
+    }
+
+    public void printCollisionCritical() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+        sb.append("%--------------------------- Two or more trains will arrive at the same node ----------------------------%\n");
+        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
+
+        sb.append("fof(collision_critical, conjecture, (![T, N]: (safe(T, N)))).\n");
+
+        writeToFile(sb.toString(), true);
     }
 }
