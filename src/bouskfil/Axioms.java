@@ -85,6 +85,10 @@ public class Axioms {
         sb.append("% Train is at certain time only in one place.\n");
         sb.append("fof(at_uniq, axiom, (![T, Train, N1, N2]: ((at(T, Train, N1) & at(T, Train, N2)) => (N1 = N2)))).\n\n");
 
+        // Train already in station can not enter it again
+        sb.append("% Train already in station can not enter it again.\n");
+        sb.append("fof(at_nondup, axiom, (![T, Train, N, OtherN]: (at(T, Train, N) => ~enter(T, Train, OtherN)))).\n\n");
+
         // Train never enters occupied node
         sb.append("% Train never enters occupied node.\n");
         sb.append("fof(input_nocol, axiom, (![T, Train, OtherTrain, N]: (at(T, Train, N) => ~enter(T, OtherTrain, N)))).\n\n");
@@ -92,10 +96,6 @@ public class Axioms {
         // Two different trains do not enter the same node in the same time
         sb.append("% Two different trains do not enter the same node in the same time.\n");
         sb.append("fof(enter_uniq, axiom, (![T, Train, OtherTrain, N]: ((enter(T, Train, N) & enter(T, OtherTrain, N)) => (Train = OtherTrain)))).\n\n");
-
-        // Train already in station can not enter it again
-        sb.append("% Train already in station can not enter it again.\n");
-        sb.append("fof(double_entry, axiom, (![T, Train, N, OtherN]: (at(T, Train, N) => ~enter(T, Train, OtherN)))).\n\n");
 
         // If train is in node the node is occupied
         sb.append("% If train is in node the node is occupied.\n");
@@ -148,7 +148,7 @@ public class Axioms {
 
         // Restriction for at values
         sb.append("% Restriction for at values.\n");
-        sb.append("fof(at_values, axiom, (![T, Train, N]: (at(T, Train, N) => (");
+        sb.append("fof(at_restr, axiom, (![T, Train, N]: (at(T, Train, N) => (");
         int size = trainStation.getMap().keySet().size();
         int i = 0;
         for (String key : trainStation.getMap().keySet()) {
@@ -212,12 +212,12 @@ public class Axioms {
 
         // Train can exit only in exit nodes
         sb.append("% Train can exit only in exit nodes.\n");
-        sb.append("fof(goal_values, axiom, (![Train]: (");
+        sb.append("fof(gate_restr, axiom, (![Train]: (");
         size = trainStation.getOuts().size();
         i = 0;
         for (Node node : trainStation.getOuts()) {
             i++;
-            sb.append("(goal(Train) = " + node.getName() + ")" + ((i == size) ? ")" : " | "));
+            sb.append("(gate(Train) = " + node.getName() + ")" + ((i == size) ? ")" : " | "));
         }
         sb.append(")).\n\n\n");
 
@@ -252,7 +252,7 @@ public class Axioms {
             Node end = path.get(path.size() - 1);
             for (int i = 0; i < path.size() - 1; i++) {
                 sb.append("fof(switch_" + path.get(i).getName() + "_" + end.getName() + ", axiom, ");
-                sb.append("(![T, Train]: ((occupied(T, Train, " + path.get(i).getName() + ") & (goal(Train) = " + end.getName() + "))");
+                sb.append("(![T, Train]: ((occupied(T, Train, " + path.get(i).getName() + ") & (gate(Train) = " + end.getName() + "))");
                 sb.append(" => ");
                 sb.append("(switch(T, " + path.get(i).getName() + ") = " + path.get(i + 1).getName() + ")))).\n");
             }
@@ -307,8 +307,36 @@ public class Axioms {
         sb.append("%---------------------------------------- Occupied restriction -----------------------------------------%\n");
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
+        for (Node node : trainStation.getMap().values()){
+            if (!node.isIn()){
+                sb.append("fof(" + node.getName() + "_occupied, axiom, (![T, Train]: (occupied(succ(T), Train, " + node.getName() + ") <=> ");
+                sb.append("((occupied(T, Train, " + node.getName() + ") & ~(at(T, Train, " + node.getName() + ") & ~at(succ(T), Train, " + node.getName() + ")))");
 
+                ArrayList<String> list = new ArrayList<>();
+                for (Stack<Node> path : trainStation.getPaths()) {
+                    if (path.contains(node)) {
+                        Node start = path.get(0);
+                        Node end = path.get(path.size() - 1);
+                        String string = "(at(T, Train, " + start.getName() + ") & (goal(Train) = " + end.getName() + ") & open(T, " + start.getName() + "))";
+                        if (!list.contains(string)) {
+                            list.add(string);
+                        }
+                    }
+                }
 
+                sb.append(" | ");
+                int i = 0;
+                for (String string : list) {
+                    sb.append(string + (i == list.size() - 1 ? "" : " | "));
+                    i++;
+                }
+
+                sb.append(")))).\n");
+            }
+        }
+        sb.append("\n\n");
+
+        writeToFile(sb.toString(), true);
 
     }
 
@@ -341,7 +369,7 @@ public class Axioms {
 
             sb.append("fof(path_open_from_" + start.getName() + "_to_" + end.getName() + ", axiom, (![T, Train, OtherTrain]: ");
             sb.append("(path_open(T, Train, " + start.getName() + ", " + end.getName() + ") <=> (at(T, Train, " + start.getName() + ") & ");
-            sb.append("(goal(Train) = " + end.getName() + ") & ");
+            sb.append("(gate(Train) = " + end.getName() + ") & ");
 
             list = new ArrayList<>();
             for (Node node : path) {
@@ -367,8 +395,8 @@ public class Axioms {
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
         for (Node node : trainStation.getIns()) {
-            sb.append("fof(" + node.getName() + "_open, axiom, (![T]: (open(T, " + node.getName() + ") <=> (?[Train]: (path_open(T, Train, ");
-            sb.append(node.getName() + ", goal(Train))");
+            sb.append("fof(open_" + node.getName() + ", axiom, (![T]: (open(T, " + node.getName() + ") <=> (?[Train]: (path_open(T, Train, ");
+            sb.append(node.getName() + ", gate(Train))");
         }
         sb.append("))))).\n\n\n");
 
