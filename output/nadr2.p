@@ -133,8 +133,6 @@ fof(move_switch_include_will_from_s2_to_out1, axiom, (![T, Train]: (((at(T, Trai
 
 fof(out2_occupied, axiom, (![T, Train]: (occupied(succ(T), Train, out2) <=> ((occupied(T, Train, out2) & ~(at(T, Train, out2) & ~at(succ(T), Train, out2))) | (at(T, Train, in2) & (goal(Train) = out2) & open(T, in2)) | (at(T, Train, in1) & (goal(Train) = out2) & open(T, in1)))))).
 fof(out1_occupied, axiom, (![T, Train]: (occupied(succ(T), Train, out1) <=> ((occupied(T, Train, out1) & ~(at(T, Train, out1) & ~at(succ(T), Train, out1))) | (at(T, Train, in2) & (goal(Train) = out1) & open(T, in2)) | (at(T, Train, in1) & (goal(Train) = out1) & open(T, in1)))))).
-fof(in2_occupied, axiom, (![T, Train]: (occupied(succ(T), Train, in2) <=> ((occupied(T, Train, in2) & ~(at(T, Train, in2) & ~at(succ(T), Train, in2))) | (at(T, Train, in2) & (goal(Train) = out2) & open(T, in2)) | (at(T, Train, in2) & (goal(Train) = out1) & open(T, in2)))))).
-fof(in1_occupied, axiom, (![T, Train]: (occupied(succ(T), Train, in1) <=> ((occupied(T, Train, in1) & ~(at(T, Train, in1) & ~at(succ(T), Train, in1))) | (at(T, Train, in1) & (goal(Train) = out2) & open(T, in1)) | (at(T, Train, in1) & (goal(Train) = out1) & open(T, in1)))))).
 fof(s1_occupied, axiom, (![T, Train]: (occupied(succ(T), Train, s1) <=> ((occupied(T, Train, s1) & ~(at(T, Train, s1) & ~at(succ(T), Train, s1))) | (at(T, Train, in1) & (goal(Train) = out2) & open(T, in1)) | (at(T, Train, in1) & (goal(Train) = out1) & open(T, in1)))))).
 fof(s2_occupied, axiom, (![T, Train]: (occupied(succ(T), Train, s2) <=> ((occupied(T, Train, s2) & ~(at(T, Train, s2) & ~at(succ(T), Train, s2))) | (at(T, Train, in2) & (goal(Train) = out2) & open(T, in2)) | (at(T, Train, in2) & (goal(Train) = out1) & open(T, in2)))))).
 

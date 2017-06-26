@@ -10,12 +10,10 @@ import java.util.HashMap;
 public class Main {
 
     public static void main(String[] args) {
-        String fileName = "nadr1";
+        String fileName = "nadr2";
 
 	    TrainStation trainStation = parseInput(fileName + ".txt");
         Axioms axioms = new Axioms(trainStation, fileName + ".p");
-
-
 
     }
 
