@@ -1,8 +1,9 @@
 digraph nadrazi {
-  in1 -> s1;
-  in2 -> s2;
-  s1 -> out1;
-  s2 -> out2;
+  in -> s1;
+  s1 -> s2;
+  s1 -> s3;
   s2 -> out1;
-  s1 -> out2;
+  s2 -> out2;
+  s3 -> out3;
+  s4 -> out4;
 }

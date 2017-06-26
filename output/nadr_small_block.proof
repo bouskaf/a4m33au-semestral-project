@@ -1,0 +1,2196 @@
+============================== Prover9 ===============================
+Prover9 (64) version 2009-11A, November 2009.
+Process 15643 was started by mac on Filip-MacBook-Pro.local,
+Mon Jun 26 22:43:16 2017
+The command was "./prover9".
+============================== end of head ===========================
+
+============================== INPUT =================================
+set(prolog_style_variables).
+
+formulas(assumptions).
+(all X all Y (less(X,Y) & less(Y,X) -> X = Y)) # label(antisymmetry) # label(axiom).
+(all X all Y all Z (less(X,Y) & less(Y,Z) -> less(X,Z))) # label(transitivity) # label(axiom).
+(all X all Y (less(X,Y) | less(Y,X))) # label(totality) # label(axiom).
+(all X (less(X,succ(X)) & (all Y (less(Y,X) | less(succ(X),Y))))) # label(succ) # label(axiom).
+(all X (pred(succ(X)) = X & succ(pred(X)) = X)) # label(pred) # label(axiom).
+(all T all Train all N1 all N2 (at(T,Train,N1) & at(T,Train,N2) -> N1 = N2)) # label(at_uniq) # label(axiom).
+(all T all Train all N all OtherN (at(T,Train,N) -> -enter(T,Train,OtherN))) # label(at_nondup) # label(axiom).
+(all T all Train all OtherTrain all N (at(T,Train,N) -> -enter(T,OtherTrain,N))) # label(input_nocol) # label(axiom).
+(all T all Train all OtherTrain all N (enter(T,Train,N) & enter(T,OtherTrain,N) -> Train = OtherTrain)) # label(enter_uniq) # label(axiom).
+(all T all Train all N (at(T,Train,N) -> occupied(T,Train,N))) # label(occupied) # label(axiom).
+(all T all N (node_empty(T,N) <-> (all Train -at(T,Train,N)))) # label(node_empty) # label(axiom).
+(all T all N (safe(T,N) <-> (all Train all OtherTrain (at(T,Train,N) & at(T,OtherTrain,N) -> Train = OtherTrain)))) # label(node_safe) # label(axiom).
+(all N (notBlocked(N) <-> (all T1 all Train (at(T1,Train,N) & -open(T1,N) -> (exists T2 (less(T1,T2) & open(T2,N))))))) # label(not_blocked) # label(axiom).
+(all T1 all Train all N (at(T1,Train,N) -> (exists T2 (will_move(T2,Train) & less(T1,T2))))) # label(train_will_move) # label(axiom).
+(all T1 all Train all N (at(T1,Train,N) -> (exists T2 exists I (enter(T2,Train,I) & less(T2,T1))))) # label(train_entered) # label(axiom).
+(all T all Train all OtherTrain all N (occupied(T,Train,N) & occupied(T,OtherTrain,N) -> Train = OtherTrain)) # label(occupied_only_once) # label(axiom).
+(all T all N1 all N2 (-node_empty(T,N1) & switch(T,N1) = N2 -> switch(succ(T),N1) = N2)) # label(switch_restr) # label(axiom).
+(all T all Train will_move(T,Train)) # label(train_moves) # label(axiom).
+(exists Train exists N1 all T2 all N2 all T1 (-at(T2,Train,N2) & -enter(T2,Train,N2) & node_empty(T2,N1) & is_input(N1) & -at(T1,Train,N2) & less(T1,T2))) -> enter(succ(T2),Train,N1) # label(train_enters) # label(axiom).
+(all T all Train all N (at(T,Train,N) -> N = out2 | N = s | N = in | N = out1)) # label(at_restr) # label(axiom).
+(all T all N (open(T,N) -> is_input(N))) # label(open_restr) # label(axiom).
+(all N (is_input(N) -> N = in)) # label(is_input) # label(axiom).
+(all Train (gate(Train) = out2 | gate(Train) = out1)) # label(gate_restr) # label(axiom).
+out2 != s & out2 != in & out2 != out1 & s != in & s != out1 & in != out1 # label(distinct_nodes) # label(axiom).
+(all T all Train all N (occupied(T,Train,N) -> N = out2 | N = s | N = in | N = out1)) # label(occupied_values) # label(axiom).
+(all T all Train all N (enter(T,Train,N) -> N = in)) # label(enter_values) # label(axiom).
+(all T (switch(T,s) = out1 | switch(T,s) = out2)) # label(switch_s_value) # label(axiom).
+(all T switch(T,in) = s) # label(switch_in_value) # label(axiom).
+(all T all Train (occupied(T,Train,in) & gate(Train) = out2 -> switch(T,in) = s)) # label(switch_in_out2) # label(axiom).
+(all T all Train (occupied(T,Train,s) & gate(Train) = out2 -> switch(T,s) = out2)) # label(switch_s_out2) # label(axiom).
+(all T all Train (occupied(T,Train,in) & gate(Train) = out1 -> switch(T,in) = s)) # label(switch_in_out1) # label(axiom).
+(all T all Train (occupied(T,Train,s) & gate(Train) = out1 -> switch(T,s) = out1)) # label(switch_s_out1) # label(axiom).
+(all T all Train (enter(T,Train,in) | at(T,Train,in) & -open(T,in))) -> at(succ(T),Train,in) # label(move_input_no_change_in) # label(axiom).
+(all T all Train ((at(T,Train,in) & open(T,in) & will_move(T,Train) -> at(succ(T),Train,s)) | (at(T,Train,in) & open(T,in) & -will_move(T,Train) -> at(succ(T),Train,in)))) # label(move_include_will_input_from_in_to_s) # label(axiom).
+(all T all Train ((at(T,Train,out2) & -will_move(T,Train) -> at(succ(T),Train,out2)) | (at(T,Train,out2) & will_move(T,Train) -> (all N -at(succ(T),Train,N))))) # label(move_out_stay_or_leave_out2) # label(axiom).
+(all T all Train ((at(T,Train,out1) & -will_move(T,Train) -> at(succ(T),Train,out1)) | (at(T,Train,out1) & will_move(T,Train) -> (all N -at(succ(T),Train,N))))) # label(move_out_stay_or_leave_out1) # label(axiom).
+(all T all Train ((at(T,Train,s) & switch(T,s) = out1 & -will_move(T,Train) -> at(succ(T),Train,s)) | (at(T,Train,s) & switch(T,s) = out1 & will_move(T,Train) -> at(succ(T),Train,out1)))) # label(move_switch_include_will_from_s_to_out1) # label(axiom).
+(all T all Train ((at(T,Train,s) & switch(T,s) = out2 & -will_move(T,Train) -> at(succ(T),Train,s)) | (at(T,Train,s) & switch(T,s) = out2 & will_move(T,Train) -> at(succ(T),Train,out2)))) # label(move_switch_include_will_from_s_to_out2) # label(axiom).
+(all T all Train (occupied(succ(T),Train,out2) <-> occupied(T,Train,out2) & -(at(T,Train,out2) & -at(succ(T),Train,out2)) | at(T,Train,in) & gate(Train) = out2 & open(T,in))) # label(out2_occupied) # label(axiom).
+(all T all Train (occupied(succ(T),Train,s) <-> occupied(T,Train,s) & -(at(T,Train,s) & -at(succ(T),Train,s)) | at(T,Train,in) & gate(Train) = out2 & open(T,in) | at(T,Train,in) & gate(Train) = out1 & open(T,in))) # label(s_occupied) # label(axiom).
+(all T all Train (occupied(succ(T),Train,out1) <-> occupied(T,Train,out1) & -(at(T,Train,out1) & -at(succ(T),Train,out1)) | at(T,Train,in) & gate(Train) = out1 & open(T,in))) # label(out1_occupied) # label(axiom).
+(all T all Train all N1 all N2 (path_open(T,Train,N1,N2) -> N1 = in & N2 = out2 | N1 = in & N2 = out1)) # label(open_values) # label(axiom).
+(all T all Train all OtherTrain (path_open(T,Train,in,out2) <-> at(T,Train,in) & gate(Train) = out2 & (-occupied(T,OtherTrain,in) | Train = OtherTrain) & (-occupied(T,OtherTrain,s) | Train = OtherTrain) & (-occupied(T,OtherTrain,out2) | Train = OtherTrain))) # label(path_open_from_in_to_out2) # label(axiom).
+(all T all Train all OtherTrain (path_open(T,Train,in,out1) <-> at(T,Train,in) & gate(Train) = out1 & (-occupied(T,OtherTrain,in) | Train = OtherTrain) & (-occupied(T,OtherTrain,s) | Train = OtherTrain) & (-occupied(T,OtherTrain,out1) | Train = OtherTrain))) # label(path_open_from_in_to_out1) # label(axiom).
+(all T (open(T,in) <-> (exists Train path_open(T,Train,in,gate(Train))))) # label(open_in) # label(axiom).
+end_of_list.
+
+formulas(goals).
+(all N (is_input(N) -> notBlocked(N))) # label(block_critical) # label(conjecture).
+end_of_list.
+
+============================== end of input ==========================
+
+============================== PROCESS NON-CLAUSAL FORMULAS ==========
+
+% Formulas that are not ordinary clauses:
+1 (all X all Y (less(X,Y) & less(Y,X) -> X = Y)) # label(antisymmetry) # label(axiom) # label(non_clause).  [assumption].
+2 (all X all Y all Z (less(X,Y) & less(Y,Z) -> less(X,Z))) # label(transitivity) # label(axiom) # label(non_clause).  [assumption].
+3 (all X all Y (less(X,Y) | less(Y,X))) # label(totality) # label(axiom) # label(non_clause).  [assumption].
+4 (all X (less(X,succ(X)) & (all Y (less(Y,X) | less(succ(X),Y))))) # label(succ) # label(axiom) # label(non_clause).  [assumption].
+5 (all X (pred(succ(X)) = X & succ(pred(X)) = X)) # label(pred) # label(axiom) # label(non_clause).  [assumption].
+6 (all T all Train all N1 all N2 (at(T,Train,N1) & at(T,Train,N2) -> N1 = N2)) # label(at_uniq) # label(axiom) # label(non_clause).  [assumption].
+7 (all T all Train all N all OtherN (at(T,Train,N) -> -enter(T,Train,OtherN))) # label(at_nondup) # label(axiom) # label(non_clause).  [assumption].
+8 (all T all Train all OtherTrain all N (at(T,Train,N) -> -enter(T,OtherTrain,N))) # label(input_nocol) # label(axiom) # label(non_clause).  [assumption].
+9 (all T all Train all OtherTrain all N (enter(T,Train,N) & enter(T,OtherTrain,N) -> Train = OtherTrain)) # label(enter_uniq) # label(axiom) # label(non_clause).  [assumption].
+10 (all T all Train all N (at(T,Train,N) -> occupied(T,Train,N))) # label(occupied) # label(axiom) # label(non_clause).  [assumption].
+11 (all T all N (node_empty(T,N) <-> (all Train -at(T,Train,N)))) # label(node_empty) # label(axiom) # label(non_clause).  [assumption].
+12 (all T all N (safe(T,N) <-> (all Train all OtherTrain (at(T,Train,N) & at(T,OtherTrain,N) -> Train = OtherTrain)))) # label(node_safe) # label(axiom) # label(non_clause).  [assumption].
+13 (all N (notBlocked(N) <-> (all T1 all Train (at(T1,Train,N) & -open(T1,N) -> (exists T2 (less(T1,T2) & open(T2,N))))))) # label(not_blocked) # label(axiom) # label(non_clause).  [assumption].
+14 (all T1 all Train all N (at(T1,Train,N) -> (exists T2 (will_move(T2,Train) & less(T1,T2))))) # label(train_will_move) # label(axiom) # label(non_clause).  [assumption].
+15 (all T1 all Train all N (at(T1,Train,N) -> (exists T2 exists I (enter(T2,Train,I) & less(T2,T1))))) # label(train_entered) # label(axiom) # label(non_clause).  [assumption].
+16 (all T all Train all OtherTrain all N (occupied(T,Train,N) & occupied(T,OtherTrain,N) -> Train = OtherTrain)) # label(occupied_only_once) # label(axiom) # label(non_clause).  [assumption].
+17 (all T all N1 all N2 (-node_empty(T,N1) & switch(T,N1) = N2 -> switch(succ(T),N1) = N2)) # label(switch_restr) # label(axiom) # label(non_clause).  [assumption].
+18 (all T all Train will_move(T,Train)) # label(train_moves) # label(axiom) # label(non_clause).  [assumption].
+19 (exists Train exists N1 all T2 all N2 all T1 (-at(T2,Train,N2) & -enter(T2,Train,N2) & node_empty(T2,N1) & is_input(N1) & -at(T1,Train,N2) & less(T1,T2))) -> enter(succ(T2),Train,N1) # label(train_enters) # label(axiom) # label(non_clause).  [assumption].
+20 (all T all Train all N (at(T,Train,N) -> N = out2 | N = s | N = in | N = out1)) # label(at_restr) # label(axiom) # label(non_clause).  [assumption].
+21 (all T all N (open(T,N) -> is_input(N))) # label(open_restr) # label(axiom) # label(non_clause).  [assumption].
+22 (all N (is_input(N) -> N = in)) # label(is_input) # label(axiom) # label(non_clause).  [assumption].
+23 (all Train (gate(Train) = out2 | gate(Train) = out1)) # label(gate_restr) # label(axiom) # label(non_clause).  [assumption].
+24 out2 != s & out2 != in & out2 != out1 & s != in & s != out1 & in != out1 # label(distinct_nodes) # label(axiom) # label(non_clause).  [assumption].
+25 (all T all Train all N (occupied(T,Train,N) -> N = out2 | N = s | N = in | N = out1)) # label(occupied_values) # label(axiom) # label(non_clause).  [assumption].
+26 (all T all Train all N (enter(T,Train,N) -> N = in)) # label(enter_values) # label(axiom) # label(non_clause).  [assumption].
+27 (all T (switch(T,s) = out1 | switch(T,s) = out2)) # label(switch_s_value) # label(axiom) # label(non_clause).  [assumption].
+28 (all T switch(T,in) = s) # label(switch_in_value) # label(axiom) # label(non_clause).  [assumption].
+29 (all T all Train (occupied(T,Train,in) & gate(Train) = out2 -> switch(T,in) = s)) # label(switch_in_out2) # label(axiom) # label(non_clause).  [assumption].
+30 (all T all Train (occupied(T,Train,s) & gate(Train) = out2 -> switch(T,s) = out2)) # label(switch_s_out2) # label(axiom) # label(non_clause).  [assumption].
+31 (all T all Train (occupied(T,Train,in) & gate(Train) = out1 -> switch(T,in) = s)) # label(switch_in_out1) # label(axiom) # label(non_clause).  [assumption].
+32 (all T all Train (occupied(T,Train,s) & gate(Train) = out1 -> switch(T,s) = out1)) # label(switch_s_out1) # label(axiom) # label(non_clause).  [assumption].
+33 (all T all Train (enter(T,Train,in) | at(T,Train,in) & -open(T,in))) -> at(succ(T),Train,in) # label(move_input_no_change_in) # label(axiom) # label(non_clause).  [assumption].
+34 (all T all Train ((at(T,Train,in) & open(T,in) & will_move(T,Train) -> at(succ(T),Train,s)) | (at(T,Train,in) & open(T,in) & -will_move(T,Train) -> at(succ(T),Train,in)))) # label(move_include_will_input_from_in_to_s) # label(axiom) # label(non_clause).  [assumption].
+35 (all T all Train ((at(T,Train,out2) & -will_move(T,Train) -> at(succ(T),Train,out2)) | (at(T,Train,out2) & will_move(T,Train) -> (all N -at(succ(T),Train,N))))) # label(move_out_stay_or_leave_out2) # label(axiom) # label(non_clause).  [assumption].
+36 (all T all Train ((at(T,Train,out1) & -will_move(T,Train) -> at(succ(T),Train,out1)) | (at(T,Train,out1) & will_move(T,Train) -> (all N -at(succ(T),Train,N))))) # label(move_out_stay_or_leave_out1) # label(axiom) # label(non_clause).  [assumption].
+37 (all T all Train ((at(T,Train,s) & switch(T,s) = out1 & -will_move(T,Train) -> at(succ(T),Train,s)) | (at(T,Train,s) & switch(T,s) = out1 & will_move(T,Train) -> at(succ(T),Train,out1)))) # label(move_switch_include_will_from_s_to_out1) # label(axiom) # label(non_clause).  [assumption].
+38 (all T all Train ((at(T,Train,s) & switch(T,s) = out2 & -will_move(T,Train) -> at(succ(T),Train,s)) | (at(T,Train,s) & switch(T,s) = out2 & will_move(T,Train) -> at(succ(T),Train,out2)))) # label(move_switch_include_will_from_s_to_out2) # label(axiom) # label(non_clause).  [assumption].
+39 (all T all Train (occupied(succ(T),Train,out2) <-> occupied(T,Train,out2) & -(at(T,Train,out2) & -at(succ(T),Train,out2)) | at(T,Train,in) & gate(Train) = out2 & open(T,in))) # label(out2_occupied) # label(axiom) # label(non_clause).  [assumption].
+40 (all T all Train (occupied(succ(T),Train,s) <-> occupied(T,Train,s) & -(at(T,Train,s) & -at(succ(T),Train,s)) | at(T,Train,in) & gate(Train) = out2 & open(T,in) | at(T,Train,in) & gate(Train) = out1 & open(T,in))) # label(s_occupied) # label(axiom) # label(non_clause).  [assumption].
+41 (all T all Train (occupied(succ(T),Train,out1) <-> occupied(T,Train,out1) & -(at(T,Train,out1) & -at(succ(T),Train,out1)) | at(T,Train,in) & gate(Train) = out1 & open(T,in))) # label(out1_occupied) # label(axiom) # label(non_clause).  [assumption].
+42 (all T all Train all N1 all N2 (path_open(T,Train,N1,N2) -> N1 = in & N2 = out2 | N1 = in & N2 = out1)) # label(open_values) # label(axiom) # label(non_clause).  [assumption].
+43 (all T all Train all OtherTrain (path_open(T,Train,in,out2) <-> at(T,Train,in) & gate(Train) = out2 & (-occupied(T,OtherTrain,in) | Train = OtherTrain) & (-occupied(T,OtherTrain,s) | Train = OtherTrain) & (-occupied(T,OtherTrain,out2) | Train = OtherTrain))) # label(path_open_from_in_to_out2) # label(axiom) # label(non_clause).  [assumption].
+44 (all T all Train all OtherTrain (path_open(T,Train,in,out1) <-> at(T,Train,in) & gate(Train) = out1 & (-occupied(T,OtherTrain,in) | Train = OtherTrain) & (-occupied(T,OtherTrain,s) | Train = OtherTrain) & (-occupied(T,OtherTrain,out1) | Train = OtherTrain))) # label(path_open_from_in_to_out1) # label(axiom) # label(non_clause).  [assumption].
+45 (all T (open(T,in) <-> (exists Train path_open(T,Train,in,gate(Train))))) # label(open_in) # label(axiom) # label(non_clause).  [assumption].
+46 (all N (is_input(N) -> notBlocked(N))) # label(block_critical) # label(conjecture) # label(non_clause) # label(goal).  [goal].
+
+============================== end of process non-clausal formulas ===
+
+============================== PROCESS INITIAL CLAUSES ===============
+
+% Clauses before input processing:
+
+formulas(usable).
+end_of_list.
+
+formulas(sos).
+-less(A,B) | -less(B,A) | B = A # label(antisymmetry) # label(axiom).  [clausify(1)].
+-less(A,B) | -less(B,C) | less(A,C) # label(transitivity) # label(axiom).  [clausify(2)].
+less(A,B) | less(B,A) # label(totality) # label(axiom).  [clausify(3)].
+less(A,succ(A)) # label(succ) # label(axiom).  [clausify(4)].
+less(A,B) | less(succ(B),A) # label(succ) # label(axiom).  [clausify(4)].
+pred(succ(A)) = A # label(pred) # label(axiom).  [clausify(5)].
+succ(pred(A)) = A # label(pred) # label(axiom).  [clausify(5)].
+-at(A,B,C) | -at(A,B,D) | D = C # label(at_uniq) # label(axiom).  [clausify(6)].
+-at(A,B,C) | -enter(A,B,D) # label(at_nondup) # label(axiom).  [clausify(7)].
+-at(A,B,C) | -enter(A,D,C) # label(input_nocol) # label(axiom).  [clausify(8)].
+-enter(A,B,C) | -enter(A,D,C) | D = B # label(enter_uniq) # label(axiom).  [clausify(9)].
+-at(A,B,C) | occupied(A,B,C) # label(occupied) # label(axiom).  [clausify(10)].
+-node_empty(A,B) | -at(A,C,B) # label(node_empty) # label(axiom).  [clausify(11)].
+node_empty(A,B) | at(A,f1(A,B),B) # label(node_empty) # label(axiom).  [clausify(11)].
+-safe(A,B) | -at(A,C,B) | -at(A,D,B) | D = C # label(node_safe) # label(axiom).  [clausify(12)].
+safe(A,B) | at(A,f2(A,B),B) # label(node_safe) # label(axiom).  [clausify(12)].
+safe(A,B) | at(A,f3(A,B),B) # label(node_safe) # label(axiom).  [clausify(12)].
+safe(A,B) | f3(A,B) != f2(A,B) # label(node_safe) # label(axiom).  [clausify(12)].
+-notBlocked(A) | -at(B,C,A) | open(B,A) | less(B,f4(A,B,C)) # label(not_blocked) # label(axiom).  [clausify(13)].
+-notBlocked(A) | -at(B,C,A) | open(B,A) | open(f4(A,B,C),A) # label(not_blocked) # label(axiom).  [clausify(13)].
+notBlocked(A) | at(f5(A),f6(A),A) # label(not_blocked) # label(axiom).  [clausify(13)].
+notBlocked(A) | -open(f5(A),A) # label(not_blocked) # label(axiom).  [clausify(13)].
+notBlocked(A) | -less(f5(A),B) | -open(B,A) # label(not_blocked) # label(axiom).  [clausify(13)].
+-at(A,B,C) | will_move(f7(A,B,C),B) # label(train_will_move) # label(axiom).  [clausify(14)].
+-at(A,B,C) | less(A,f7(A,B,C)) # label(train_will_move) # label(axiom).  [clausify(14)].
+-at(A,B,C) | enter(f8(A,B,C),B,f9(A,B,C)) # label(train_entered) # label(axiom).  [clausify(15)].
+-at(A,B,C) | less(f8(A,B,C),A) # label(train_entered) # label(axiom).  [clausify(15)].
+-occupied(A,B,C) | -occupied(A,D,C) | D = B # label(occupied_only_once) # label(axiom).  [clausify(16)].
+node_empty(A,B) | switch(A,B) != C | switch(succ(A),B) = C # label(switch_restr) # label(axiom).  [clausify(17)].
+will_move(A,B) # label(train_moves) # label(axiom).  [clausify(18)].
+at(f10(A,B,C,D,E),D,f11(A,B,C,D,E)) | enter(f10(A,B,C,D,E),D,f11(A,B,C,D,E)) | -node_empty(f10(A,B,C,D,E),E) | -is_input(E) | at(f12(A,B,C,D,E),D,f11(A,B,C,D,E)) | -less(f12(A,B,C,D,E),f10(A,B,C,D,E)) | enter(succ(A),B,C) # label(train_enters) # label(axiom).  [clausify(19)].
+-at(A,B,C) | out2 = C | s = C | in = C | out1 = C # label(at_restr) # label(axiom).  [clausify(20)].
+-open(A,B) | is_input(B) # label(open_restr) # label(axiom).  [clausify(21)].
+-is_input(A) | in = A # label(is_input) # label(axiom).  [clausify(22)].
+gate(A) = out2 | gate(A) = out1 # label(gate_restr) # label(axiom).  [clausify(23)].
+s != out2 # label(distinct_nodes) # label(axiom).  [clausify(24)].
+in != out2 # label(distinct_nodes) # label(axiom).  [clausify(24)].
+out1 != out2 # label(distinct_nodes) # label(axiom).  [clausify(24)].
+in != s # label(distinct_nodes) # label(axiom).  [clausify(24)].
+out1 != s # label(distinct_nodes) # label(axiom).  [clausify(24)].
+out1 != in # label(distinct_nodes) # label(axiom).  [clausify(24)].
+-occupied(A,B,C) | out2 = C | s = C | in = C | out1 = C # label(occupied_values) # label(axiom).  [clausify(25)].
+-enter(A,B,C) | in = C # label(enter_values) # label(axiom).  [clausify(26)].
+switch(A,s) = out1 | switch(A,s) = out2 # label(switch_s_value) # label(axiom).  [clausify(27)].
+switch(A,in) = s # label(switch_in_value) # label(axiom).  [clausify(28)].
+-occupied(A,B,in) | gate(B) != out2 | switch(A,in) = s # label(switch_in_out2) # label(axiom).  [clausify(29)].
+-occupied(A,B,s) | gate(B) != out2 | switch(A,s) = out2 # label(switch_s_out2) # label(axiom).  [clausify(30)].
+-occupied(A,B,in) | gate(B) != out1 | switch(A,in) = s # label(switch_in_out1) # label(axiom).  [clausify(31)].
+-occupied(A,B,s) | gate(B) != out1 | switch(A,s) = out1 # label(switch_s_out1) # label(axiom).  [clausify(32)].
+-enter(f13(A,B),f14(A,B),in) | at(succ(A),B,in) # label(move_input_no_change_in) # label(axiom).  [clausify(33)].
+-at(f13(A,B),f14(A,B),in) | open(f13(A,B),in) | at(succ(A),B,in) # label(move_input_no_change_in) # label(axiom).  [clausify(33)].
+-occupied(succ(A),B,out2) | occupied(A,B,out2) | at(A,B,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+-occupied(succ(A),B,out2) | occupied(A,B,out2) | gate(B) = out2 # label(out2_occupied) # label(axiom).  [clausify(39)].
+-occupied(succ(A),B,out2) | occupied(A,B,out2) | open(A,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+-occupied(succ(A),B,out2) | -at(A,B,out2) | at(succ(A),B,out2) | at(A,B,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+-occupied(succ(A),B,out2) | -at(A,B,out2) | at(succ(A),B,out2) | gate(B) = out2 # label(out2_occupied) # label(axiom).  [clausify(39)].
+-occupied(succ(A),B,out2) | -at(A,B,out2) | at(succ(A),B,out2) | open(A,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+occupied(succ(A),B,out2) | -occupied(A,B,out2) | at(A,B,out2) # label(out2_occupied) # label(axiom).  [clausify(39)].
+occupied(succ(A),B,out2) | -occupied(A,B,out2) | -at(succ(A),B,out2) # label(out2_occupied) # label(axiom).  [clausify(39)].
+occupied(succ(A),B,out2) | -at(A,B,in) | gate(B) != out2 | -open(A,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+-occupied(succ(A),B,s) | occupied(A,B,s) | at(A,B,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+-occupied(succ(A),B,s) | occupied(A,B,s) | gate(B) = out2 | gate(B) = out1 # label(s_occupied) # label(axiom).  [clausify(40)].
+-occupied(succ(A),B,s) | occupied(A,B,s) | open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+-occupied(succ(A),B,s) | -at(A,B,s) | at(succ(A),B,s) | at(A,B,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+-occupied(succ(A),B,s) | -at(A,B,s) | at(succ(A),B,s) | gate(B) = out2 | gate(B) = out1 # label(s_occupied) # label(axiom).  [clausify(40)].
+-occupied(succ(A),B,s) | -at(A,B,s) | at(succ(A),B,s) | open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+occupied(succ(A),B,s) | -occupied(A,B,s) | at(A,B,s) # label(s_occupied) # label(axiom).  [clausify(40)].
+occupied(succ(A),B,s) | -occupied(A,B,s) | -at(succ(A),B,s) # label(s_occupied) # label(axiom).  [clausify(40)].
+occupied(succ(A),B,s) | -at(A,B,in) | gate(B) != out2 | -open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+occupied(succ(A),B,s) | -at(A,B,in) | gate(B) != out1 | -open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+-occupied(succ(A),B,out1) | occupied(A,B,out1) | at(A,B,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+-occupied(succ(A),B,out1) | occupied(A,B,out1) | gate(B) = out1 # label(out1_occupied) # label(axiom).  [clausify(41)].
+-occupied(succ(A),B,out1) | occupied(A,B,out1) | open(A,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+-occupied(succ(A),B,out1) | -at(A,B,out1) | at(succ(A),B,out1) | at(A,B,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+-occupied(succ(A),B,out1) | -at(A,B,out1) | at(succ(A),B,out1) | gate(B) = out1 # label(out1_occupied) # label(axiom).  [clausify(41)].
+-occupied(succ(A),B,out1) | -at(A,B,out1) | at(succ(A),B,out1) | open(A,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+occupied(succ(A),B,out1) | -occupied(A,B,out1) | at(A,B,out1) # label(out1_occupied) # label(axiom).  [clausify(41)].
+occupied(succ(A),B,out1) | -occupied(A,B,out1) | -at(succ(A),B,out1) # label(out1_occupied) # label(axiom).  [clausify(41)].
+occupied(succ(A),B,out1) | -at(A,B,in) | gate(B) != out1 | -open(A,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+-path_open(A,B,C,D) | in = C # label(open_values) # label(axiom).  [clausify(42)].
+-path_open(A,B,C,D) | out2 = D | out1 = D # label(open_values) # label(axiom).  [clausify(42)].
+-path_open(A,B,in,out2) | at(A,B,in) # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+-path_open(A,B,in,out2) | gate(B) = out2 # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+-path_open(A,B,in,out2) | -occupied(A,C,in) | C = B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+-path_open(A,B,in,out2) | -occupied(A,C,s) | C = B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+-path_open(A,B,in,out2) | -occupied(A,C,out2) | C = B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+path_open(A,B,in,out2) | -at(A,B,in) | gate(B) != out2 | occupied(A,C,in) | occupied(A,C,s) | occupied(A,C,out2) # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+path_open(A,B,in,out2) | -at(A,B,in) | gate(B) != out2 | C != B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+-path_open(A,B,in,out1) | at(A,B,in) # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+-path_open(A,B,in,out1) | gate(B) = out1 # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+-path_open(A,B,in,out1) | -occupied(A,C,in) | C = B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+-path_open(A,B,in,out1) | -occupied(A,C,s) | C = B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+-path_open(A,B,in,out1) | -occupied(A,C,out1) | C = B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+path_open(A,B,in,out1) | -at(A,B,in) | gate(B) != out1 | occupied(A,C,in) | occupied(A,C,s) | occupied(A,C,out1) # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+path_open(A,B,in,out1) | -at(A,B,in) | gate(B) != out1 | C != B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+-open(A,in) | path_open(A,f15(A),in,gate(f15(A))) # label(open_in) # label(axiom).  [clausify(45)].
+open(A,in) | -path_open(A,B,in,gate(B)) # label(open_in) # label(axiom).  [clausify(45)].
+is_input(c1) # label(block_critical) # label(conjecture).  [deny(46)].
+-notBlocked(c1) # label(block_critical) # label(conjecture).  [deny(46)].
+end_of_list.
+
+formulas(demodulators).
+end_of_list.
+
+============================== PREDICATE ELIMINATION =================
+
+Eliminating safe/2
+47 safe(A,B) | at(A,f2(A,B),B) # label(node_safe) # label(axiom).  [clausify(12)].
+48 -safe(A,B) | -at(A,C,B) | -at(A,D,B) | D = C # label(node_safe) # label(axiom).  [clausify(12)].
+Derived: at(A,f2(A,B),B) | -at(A,C,B) | -at(A,D,B) | D = C.  [resolve(47,a,48,a)].
+49 safe(A,B) | at(A,f3(A,B),B) # label(node_safe) # label(axiom).  [clausify(12)].
+Derived: at(A,f3(A,B),B) | -at(A,C,B) | -at(A,D,B) | D = C.  [resolve(49,a,48,a)].
+50 safe(A,B) | f3(A,B) != f2(A,B) # label(node_safe) # label(axiom).  [clausify(12)].
+Derived: f3(A,B) != f2(A,B) | -at(A,C,B) | -at(A,D,B) | D = C.  [resolve(50,a,48,a)].
+
+Eliminating will_move/2
+
+Eliminating is_input/1
+51 -open(A,B) | is_input(B) # label(open_restr) # label(axiom).  [clausify(21)].
+52 at(f10(A,B,C,D,E),D,f11(A,B,C,D,E)) | enter(f10(A,B,C,D,E),D,f11(A,B,C,D,E)) | -node_empty(f10(A,B,C,D,E),E) | -is_input(E) | at(f12(A,B,C,D,E),D,f11(A,B,C,D,E)) | -less(f12(A,B,C,D,E),f10(A,B,C,D,E)) | enter(succ(A),B,C) # label(train_enters) # label(axiom).  [clausify(19)].
+Derived: -open(A,B) | at(f10(C,D,E,F,B),F,f11(C,D,E,F,B)) | enter(f10(C,D,E,F,B),F,f11(C,D,E,F,B)) | -node_empty(f10(C,D,E,F,B),B) | at(f12(C,D,E,F,B),F,f11(C,D,E,F,B)) | -less(f12(C,D,E,F,B),f10(C,D,E,F,B)) | enter(succ(C),D,E).  [resolve(51,b,52,d)].
+53 -is_input(A) | in = A # label(is_input) # label(axiom).  [clausify(22)].
+Derived: in = A | -open(B,A).  [resolve(53,a,51,b)].
+54 is_input(c1) # label(block_critical) # label(conjecture).  [deny(46)].
+Derived: at(f10(A,B,C,D,c1),D,f11(A,B,C,D,c1)) | enter(f10(A,B,C,D,c1),D,f11(A,B,C,D,c1)) | -node_empty(f10(A,B,C,D,c1),c1) | at(f12(A,B,C,D,c1),D,f11(A,B,C,D,c1)) | -less(f12(A,B,C,D,c1),f10(A,B,C,D,c1)) | enter(succ(A),B,C).  [resolve(54,a,52,d)].
+Derived: in = c1.  [resolve(54,a,53,a)].
+
+============================== end predicate elimination =============
+
+Auto_denials:  (non-Horn, no changes).
+
+Term ordering decisions:
+Predicate symbol precedence:  predicate_order([ =, notBlocked, open, less, node_empty, at, occupied, enter, path_open ]).
+Function symbol precedence:  function_order([ in, out1, out2, s, c1, switch, f1, f2, f3, f13, f14, succ, gate, pred, f5, f6, f15, f4, f7, f8, f9, f10, f11, f12 ]).
+After inverse_order:  (no changes).
+Unfolding symbols: (none).
+
+Auto_inference settings:
+  % set(paramodulation).  % (positive equality literals)
+  % set(binary_resolution).  % (non-Horn)
+  % set(neg_ur_resolution).  % (non-Horn, less than 100 clauses)
+
+Auto_process settings:
+  % set(factor).  % (non-Horn)
+  % set(unit_deletion).  % (non-Horn)
+
+kept:      55 -less(A,B) | -less(B,A) | B = A # label(antisymmetry) # label(axiom).  [clausify(1)].
+kept:      56 -less(A,B) | -less(B,C) | less(A,C) # label(transitivity) # label(axiom).  [clausify(2)].
+kept:      57 less(A,B) | less(B,A) # label(totality) # label(axiom).  [clausify(3)].
+kept:      58 less(A,succ(A)) # label(succ) # label(axiom).  [clausify(4)].
+kept:      59 less(A,B) | less(succ(B),A) # label(succ) # label(axiom).  [clausify(4)].
+kept:      60 pred(succ(A)) = A # label(pred) # label(axiom).  [clausify(5)].
+kept:      61 succ(pred(A)) = A # label(pred) # label(axiom).  [clausify(5)].
+kept:      62 -at(A,B,C) | -at(A,B,D) | D = C # label(at_uniq) # label(axiom).  [clausify(6)].
+kept:      63 -at(A,B,C) | -enter(A,B,D) # label(at_nondup) # label(axiom).  [clausify(7)].
+kept:      64 -at(A,B,C) | -enter(A,D,C) # label(input_nocol) # label(axiom).  [clausify(8)].
+kept:      65 -enter(A,B,C) | -enter(A,D,C) | D = B # label(enter_uniq) # label(axiom).  [clausify(9)].
+kept:      66 -at(A,B,C) | occupied(A,B,C) # label(occupied) # label(axiom).  [clausify(10)].
+kept:      67 -node_empty(A,B) | -at(A,C,B) # label(node_empty) # label(axiom).  [clausify(11)].
+kept:      68 node_empty(A,B) | at(A,f1(A,B),B) # label(node_empty) # label(axiom).  [clausify(11)].
+kept:      69 -notBlocked(A) | -at(B,C,A) | open(B,A) | less(B,f4(A,B,C)) # label(not_blocked) # label(axiom).  [clausify(13)].
+kept:      70 -notBlocked(A) | -at(B,C,A) | open(B,A) | open(f4(A,B,C),A) # label(not_blocked) # label(axiom).  [clausify(13)].
+kept:      71 notBlocked(A) | at(f5(A),f6(A),A) # label(not_blocked) # label(axiom).  [clausify(13)].
+kept:      72 notBlocked(A) | -open(f5(A),A) # label(not_blocked) # label(axiom).  [clausify(13)].
+kept:      73 notBlocked(A) | -less(f5(A),B) | -open(B,A) # label(not_blocked) # label(axiom).  [clausify(13)].
+kept:      74 -at(A,B,C) | less(A,f7(A,B,C)) # label(train_will_move) # label(axiom).  [clausify(14)].
+kept:      75 -at(A,B,C) | enter(f8(A,B,C),B,f9(A,B,C)) # label(train_entered) # label(axiom).  [clausify(15)].
+kept:      76 -at(A,B,C) | less(f8(A,B,C),A) # label(train_entered) # label(axiom).  [clausify(15)].
+kept:      77 -occupied(A,B,C) | -occupied(A,D,C) | D = B # label(occupied_only_once) # label(axiom).  [clausify(16)].
+kept:      78 node_empty(A,B) | switch(A,B) != C | switch(succ(A),B) = C # label(switch_restr) # label(axiom).  [clausify(17)].
+kept:      79 -at(A,B,C) | out2 = C | s = C | in = C | out1 = C # label(at_restr) # label(axiom).  [clausify(20)].
+kept:      80 gate(A) = out2 | gate(A) = out1 # label(gate_restr) # label(axiom).  [clausify(23)].
+kept:      81 s != out2 # label(distinct_nodes) # label(axiom).  [clausify(24)].
+           82 in != out2 # label(distinct_nodes) # label(axiom).  [clausify(24)].
+kept:      83 out2 != in.  [copy(82),flip(a)].
+           84 out1 != out2 # label(distinct_nodes) # label(axiom).  [clausify(24)].
+kept:      85 out2 != out1.  [copy(84),flip(a)].
+           86 in != s # label(distinct_nodes) # label(axiom).  [clausify(24)].
+kept:      87 s != in.  [copy(86),flip(a)].
+           88 out1 != s # label(distinct_nodes) # label(axiom).  [clausify(24)].
+kept:      89 s != out1.  [copy(88),flip(a)].
+kept:      90 out1 != in # label(distinct_nodes) # label(axiom).  [clausify(24)].
+kept:      91 -occupied(A,B,C) | out2 = C | s = C | in = C | out1 = C # label(occupied_values) # label(axiom).  [clausify(25)].
+kept:      92 -enter(A,B,C) | in = C # label(enter_values) # label(axiom).  [clausify(26)].
+kept:      93 switch(A,s) = out1 | switch(A,s) = out2 # label(switch_s_value) # label(axiom).  [clausify(27)].
+kept:      94 switch(A,in) = s # label(switch_in_value) # label(axiom).  [clausify(28)].
+           95 -occupied(A,B,in) | gate(B) != out2 | switch(A,in) = s # label(switch_in_out2) # label(axiom).  [clausify(29)].
+kept:      96 -occupied(A,B,s) | gate(B) != out2 | switch(A,s) = out2 # label(switch_s_out2) # label(axiom).  [clausify(30)].
+           97 -occupied(A,B,in) | gate(B) != out1 | switch(A,in) = s # label(switch_in_out1) # label(axiom).  [clausify(31)].
+kept:      98 -occupied(A,B,s) | gate(B) != out1 | switch(A,s) = out1 # label(switch_s_out1) # label(axiom).  [clausify(32)].
+kept:      99 -enter(f13(A,B),f14(A,B),in) | at(succ(A),B,in) # label(move_input_no_change_in) # label(axiom).  [clausify(33)].
+kept:      100 -at(f13(A,B),f14(A,B),in) | open(f13(A,B),in) | at(succ(A),B,in) # label(move_input_no_change_in) # label(axiom).  [clausify(33)].
+kept:      101 -occupied(succ(A),B,out2) | occupied(A,B,out2) | at(A,B,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+kept:      102 -occupied(succ(A),B,out2) | occupied(A,B,out2) | gate(B) = out2 # label(out2_occupied) # label(axiom).  [clausify(39)].
+kept:      103 -occupied(succ(A),B,out2) | occupied(A,B,out2) | open(A,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+kept:      104 -occupied(succ(A),B,out2) | -at(A,B,out2) | at(succ(A),B,out2) | at(A,B,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+kept:      105 -occupied(succ(A),B,out2) | -at(A,B,out2) | at(succ(A),B,out2) | gate(B) = out2 # label(out2_occupied) # label(axiom).  [clausify(39)].
+kept:      106 -occupied(succ(A),B,out2) | -at(A,B,out2) | at(succ(A),B,out2) | open(A,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+kept:      107 occupied(succ(A),B,out2) | -occupied(A,B,out2) | at(A,B,out2) # label(out2_occupied) # label(axiom).  [clausify(39)].
+kept:      108 occupied(succ(A),B,out2) | -at(A,B,in) | gate(B) != out2 | -open(A,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+kept:      109 -occupied(succ(A),B,s) | occupied(A,B,s) | at(A,B,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+kept:      110 -occupied(succ(A),B,s) | occupied(A,B,s) | open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+kept:      111 -occupied(succ(A),B,s) | -at(A,B,s) | at(succ(A),B,s) | at(A,B,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+kept:      112 -occupied(succ(A),B,s) | -at(A,B,s) | at(succ(A),B,s) | open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+kept:      113 occupied(succ(A),B,s) | -occupied(A,B,s) | at(A,B,s) # label(s_occupied) # label(axiom).  [clausify(40)].
+kept:      114 occupied(succ(A),B,s) | -at(A,B,in) | gate(B) != out2 | -open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+kept:      115 occupied(succ(A),B,s) | -at(A,B,in) | gate(B) != out1 | -open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+kept:      116 -occupied(succ(A),B,out1) | occupied(A,B,out1) | at(A,B,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+kept:      117 -occupied(succ(A),B,out1) | occupied(A,B,out1) | gate(B) = out1 # label(out1_occupied) # label(axiom).  [clausify(41)].
+kept:      118 -occupied(succ(A),B,out1) | occupied(A,B,out1) | open(A,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+kept:      119 -occupied(succ(A),B,out1) | -at(A,B,out1) | at(succ(A),B,out1) | at(A,B,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+kept:      120 -occupied(succ(A),B,out1) | -at(A,B,out1) | at(succ(A),B,out1) | gate(B) = out1 # label(out1_occupied) # label(axiom).  [clausify(41)].
+kept:      121 -occupied(succ(A),B,out1) | -at(A,B,out1) | at(succ(A),B,out1) | open(A,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+kept:      122 occupied(succ(A),B,out1) | -occupied(A,B,out1) | at(A,B,out1) # label(out1_occupied) # label(axiom).  [clausify(41)].
+kept:      123 occupied(succ(A),B,out1) | -at(A,B,in) | gate(B) != out1 | -open(A,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+kept:      124 -path_open(A,B,C,D) | in = C # label(open_values) # label(axiom).  [clausify(42)].
+kept:      125 -path_open(A,B,C,D) | out2 = D | out1 = D # label(open_values) # label(axiom).  [clausify(42)].
+kept:      126 -path_open(A,B,in,out2) | at(A,B,in) # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+kept:      127 -path_open(A,B,in,out2) | gate(B) = out2 # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+kept:      128 -path_open(A,B,in,out2) | -occupied(A,C,in) | C = B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+kept:      129 -path_open(A,B,in,out2) | -occupied(A,C,s) | C = B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+kept:      130 -path_open(A,B,in,out2) | -occupied(A,C,out2) | C = B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+kept:      131 path_open(A,B,in,out2) | -at(A,B,in) | gate(B) != out2 | occupied(A,C,in) | occupied(A,C,s) | occupied(A,C,out2) # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+           132 path_open(A,B,in,out2) | -at(A,B,in) | gate(B) != out2 | C != B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+kept:      133 path_open(A,B,in,out2) | -at(A,B,in) | gate(B) != out2.  [copy(132),xx(d)].
+kept:      134 -path_open(A,B,in,out1) | at(A,B,in) # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+kept:      135 -path_open(A,B,in,out1) | gate(B) = out1 # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+kept:      136 -path_open(A,B,in,out1) | -occupied(A,C,in) | C = B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+kept:      137 -path_open(A,B,in,out1) | -occupied(A,C,s) | C = B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+kept:      138 -path_open(A,B,in,out1) | -occupied(A,C,out1) | C = B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+kept:      139 path_open(A,B,in,out1) | -at(A,B,in) | gate(B) != out1 | occupied(A,C,in) | occupied(A,C,s) | occupied(A,C,out1) # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+           140 path_open(A,B,in,out1) | -at(A,B,in) | gate(B) != out1 | C != B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+kept:      141 path_open(A,B,in,out1) | -at(A,B,in) | gate(B) != out1.  [copy(140),xx(d)].
+kept:      142 -open(A,in) | path_open(A,f15(A),in,gate(f15(A))) # label(open_in) # label(axiom).  [clausify(45)].
+kept:      143 open(A,in) | -path_open(A,B,in,gate(B)) # label(open_in) # label(axiom).  [clausify(45)].
+kept:      144 -notBlocked(c1) # label(block_critical) # label(conjecture).  [deny(46)].
+kept:      145 at(A,f2(A,B),B) | -at(A,C,B) | -at(A,D,B) | D = C.  [resolve(47,a,48,a)].
+kept:      146 at(A,f3(A,B),B) | -at(A,C,B) | -at(A,D,B) | D = C.  [resolve(49,a,48,a)].
+kept:      147 f3(A,B) != f2(A,B) | -at(A,C,B) | -at(A,D,B) | D = C.  [resolve(50,a,48,a)].
+kept:      148 -open(A,B) | at(f10(C,D,E,F,B),F,f11(C,D,E,F,B)) | enter(f10(C,D,E,F,B),F,f11(C,D,E,F,B)) | -node_empty(f10(C,D,E,F,B),B) | at(f12(C,D,E,F,B),F,f11(C,D,E,F,B)) | -less(f12(C,D,E,F,B),f10(C,D,E,F,B)) | enter(succ(C),D,E).  [resolve(51,b,52,d)].
+kept:      149 in = A | -open(B,A).  [resolve(53,a,51,b)].
+kept:      150 at(f10(A,B,C,D,c1),D,f11(A,B,C,D,c1)) | enter(f10(A,B,C,D,c1),D,f11(A,B,C,D,c1)) | -node_empty(f10(A,B,C,D,c1),c1) | at(f12(A,B,C,D,c1),D,f11(A,B,C,D,c1)) | -less(f12(A,B,C,D,c1),f10(A,B,C,D,c1)) | enter(succ(A),B,C).  [resolve(54,a,52,d)].
+           151 in = c1.  [resolve(54,a,53,a)].
+kept:      152 c1 = in.  [copy(151),flip(a)].
+kept:      153 less(A,A).  [factor(57,a,b)].
+kept:      154 at(f10(A,B,C,D,in),D,f11(A,B,C,D,in)) | enter(f10(A,B,C,D,in),D,f11(A,B,C,D,in)) | -node_empty(f10(A,B,C,D,in),in) | at(f12(A,B,C,D,in),D,f11(A,B,C,D,in)) | -less(f12(A,B,C,D,in),f10(A,B,C,D,in)) | enter(succ(A),B,C).  [back_rewrite(150),rewrite([152(1),152(3),152(6),152(8),152(11),152(13),152(15),152(17),152(20),152(22)])].
+kept:      155 -notBlocked(in).  [back_rewrite(144),rewrite([152(1)])].
+
+============================== end of process initial clauses ========
+
+============================== CLAUSES FOR SEARCH ====================
+
+% Clauses after input processing:
+
+formulas(usable).
+end_of_list.
+
+formulas(sos).
+55 -less(A,B) | -less(B,A) | B = A # label(antisymmetry) # label(axiom).  [clausify(1)].
+56 -less(A,B) | -less(B,C) | less(A,C) # label(transitivity) # label(axiom).  [clausify(2)].
+57 less(A,B) | less(B,A) # label(totality) # label(axiom).  [clausify(3)].
+58 less(A,succ(A)) # label(succ) # label(axiom).  [clausify(4)].
+59 less(A,B) | less(succ(B),A) # label(succ) # label(axiom).  [clausify(4)].
+60 pred(succ(A)) = A # label(pred) # label(axiom).  [clausify(5)].
+61 succ(pred(A)) = A # label(pred) # label(axiom).  [clausify(5)].
+62 -at(A,B,C) | -at(A,B,D) | D = C # label(at_uniq) # label(axiom).  [clausify(6)].
+63 -at(A,B,C) | -enter(A,B,D) # label(at_nondup) # label(axiom).  [clausify(7)].
+64 -at(A,B,C) | -enter(A,D,C) # label(input_nocol) # label(axiom).  [clausify(8)].
+65 -enter(A,B,C) | -enter(A,D,C) | D = B # label(enter_uniq) # label(axiom).  [clausify(9)].
+66 -at(A,B,C) | occupied(A,B,C) # label(occupied) # label(axiom).  [clausify(10)].
+67 -node_empty(A,B) | -at(A,C,B) # label(node_empty) # label(axiom).  [clausify(11)].
+68 node_empty(A,B) | at(A,f1(A,B),B) # label(node_empty) # label(axiom).  [clausify(11)].
+69 -notBlocked(A) | -at(B,C,A) | open(B,A) | less(B,f4(A,B,C)) # label(not_blocked) # label(axiom).  [clausify(13)].
+70 -notBlocked(A) | -at(B,C,A) | open(B,A) | open(f4(A,B,C),A) # label(not_blocked) # label(axiom).  [clausify(13)].
+71 notBlocked(A) | at(f5(A),f6(A),A) # label(not_blocked) # label(axiom).  [clausify(13)].
+72 notBlocked(A) | -open(f5(A),A) # label(not_blocked) # label(axiom).  [clausify(13)].
+73 notBlocked(A) | -less(f5(A),B) | -open(B,A) # label(not_blocked) # label(axiom).  [clausify(13)].
+74 -at(A,B,C) | less(A,f7(A,B,C)) # label(train_will_move) # label(axiom).  [clausify(14)].
+75 -at(A,B,C) | enter(f8(A,B,C),B,f9(A,B,C)) # label(train_entered) # label(axiom).  [clausify(15)].
+76 -at(A,B,C) | less(f8(A,B,C),A) # label(train_entered) # label(axiom).  [clausify(15)].
+77 -occupied(A,B,C) | -occupied(A,D,C) | D = B # label(occupied_only_once) # label(axiom).  [clausify(16)].
+78 node_empty(A,B) | switch(A,B) != C | switch(succ(A),B) = C # label(switch_restr) # label(axiom).  [clausify(17)].
+79 -at(A,B,C) | out2 = C | s = C | in = C | out1 = C # label(at_restr) # label(axiom).  [clausify(20)].
+80 gate(A) = out2 | gate(A) = out1 # label(gate_restr) # label(axiom).  [clausify(23)].
+81 s != out2 # label(distinct_nodes) # label(axiom).  [clausify(24)].
+83 out2 != in.  [copy(82),flip(a)].
+85 out2 != out1.  [copy(84),flip(a)].
+87 s != in.  [copy(86),flip(a)].
+89 s != out1.  [copy(88),flip(a)].
+90 out1 != in # label(distinct_nodes) # label(axiom).  [clausify(24)].
+91 -occupied(A,B,C) | out2 = C | s = C | in = C | out1 = C # label(occupied_values) # label(axiom).  [clausify(25)].
+92 -enter(A,B,C) | in = C # label(enter_values) # label(axiom).  [clausify(26)].
+93 switch(A,s) = out1 | switch(A,s) = out2 # label(switch_s_value) # label(axiom).  [clausify(27)].
+94 switch(A,in) = s # label(switch_in_value) # label(axiom).  [clausify(28)].
+96 -occupied(A,B,s) | gate(B) != out2 | switch(A,s) = out2 # label(switch_s_out2) # label(axiom).  [clausify(30)].
+98 -occupied(A,B,s) | gate(B) != out1 | switch(A,s) = out1 # label(switch_s_out1) # label(axiom).  [clausify(32)].
+99 -enter(f13(A,B),f14(A,B),in) | at(succ(A),B,in) # label(move_input_no_change_in) # label(axiom).  [clausify(33)].
+100 -at(f13(A,B),f14(A,B),in) | open(f13(A,B),in) | at(succ(A),B,in) # label(move_input_no_change_in) # label(axiom).  [clausify(33)].
+101 -occupied(succ(A),B,out2) | occupied(A,B,out2) | at(A,B,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+102 -occupied(succ(A),B,out2) | occupied(A,B,out2) | gate(B) = out2 # label(out2_occupied) # label(axiom).  [clausify(39)].
+103 -occupied(succ(A),B,out2) | occupied(A,B,out2) | open(A,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+104 -occupied(succ(A),B,out2) | -at(A,B,out2) | at(succ(A),B,out2) | at(A,B,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+105 -occupied(succ(A),B,out2) | -at(A,B,out2) | at(succ(A),B,out2) | gate(B) = out2 # label(out2_occupied) # label(axiom).  [clausify(39)].
+106 -occupied(succ(A),B,out2) | -at(A,B,out2) | at(succ(A),B,out2) | open(A,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+107 occupied(succ(A),B,out2) | -occupied(A,B,out2) | at(A,B,out2) # label(out2_occupied) # label(axiom).  [clausify(39)].
+108 occupied(succ(A),B,out2) | -at(A,B,in) | gate(B) != out2 | -open(A,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+109 -occupied(succ(A),B,s) | occupied(A,B,s) | at(A,B,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+110 -occupied(succ(A),B,s) | occupied(A,B,s) | open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+111 -occupied(succ(A),B,s) | -at(A,B,s) | at(succ(A),B,s) | at(A,B,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+112 -occupied(succ(A),B,s) | -at(A,B,s) | at(succ(A),B,s) | open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+113 occupied(succ(A),B,s) | -occupied(A,B,s) | at(A,B,s) # label(s_occupied) # label(axiom).  [clausify(40)].
+114 occupied(succ(A),B,s) | -at(A,B,in) | gate(B) != out2 | -open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+115 occupied(succ(A),B,s) | -at(A,B,in) | gate(B) != out1 | -open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+116 -occupied(succ(A),B,out1) | occupied(A,B,out1) | at(A,B,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+117 -occupied(succ(A),B,out1) | occupied(A,B,out1) | gate(B) = out1 # label(out1_occupied) # label(axiom).  [clausify(41)].
+118 -occupied(succ(A),B,out1) | occupied(A,B,out1) | open(A,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+119 -occupied(succ(A),B,out1) | -at(A,B,out1) | at(succ(A),B,out1) | at(A,B,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+120 -occupied(succ(A),B,out1) | -at(A,B,out1) | at(succ(A),B,out1) | gate(B) = out1 # label(out1_occupied) # label(axiom).  [clausify(41)].
+121 -occupied(succ(A),B,out1) | -at(A,B,out1) | at(succ(A),B,out1) | open(A,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+122 occupied(succ(A),B,out1) | -occupied(A,B,out1) | at(A,B,out1) # label(out1_occupied) # label(axiom).  [clausify(41)].
+123 occupied(succ(A),B,out1) | -at(A,B,in) | gate(B) != out1 | -open(A,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+124 -path_open(A,B,C,D) | in = C # label(open_values) # label(axiom).  [clausify(42)].
+125 -path_open(A,B,C,D) | out2 = D | out1 = D # label(open_values) # label(axiom).  [clausify(42)].
+126 -path_open(A,B,in,out2) | at(A,B,in) # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+127 -path_open(A,B,in,out2) | gate(B) = out2 # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+128 -path_open(A,B,in,out2) | -occupied(A,C,in) | C = B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+129 -path_open(A,B,in,out2) | -occupied(A,C,s) | C = B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+130 -path_open(A,B,in,out2) | -occupied(A,C,out2) | C = B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+133 path_open(A,B,in,out2) | -at(A,B,in) | gate(B) != out2.  [copy(132),xx(d)].
+134 -path_open(A,B,in,out1) | at(A,B,in) # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+135 -path_open(A,B,in,out1) | gate(B) = out1 # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+136 -path_open(A,B,in,out1) | -occupied(A,C,in) | C = B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+137 -path_open(A,B,in,out1) | -occupied(A,C,s) | C = B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+138 -path_open(A,B,in,out1) | -occupied(A,C,out1) | C = B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+141 path_open(A,B,in,out1) | -at(A,B,in) | gate(B) != out1.  [copy(140),xx(d)].
+142 -open(A,in) | path_open(A,f15(A),in,gate(f15(A))) # label(open_in) # label(axiom).  [clausify(45)].
+143 open(A,in) | -path_open(A,B,in,gate(B)) # label(open_in) # label(axiom).  [clausify(45)].
+145 at(A,f2(A,B),B) | -at(A,C,B) | -at(A,D,B) | D = C.  [resolve(47,a,48,a)].
+146 at(A,f3(A,B),B) | -at(A,C,B) | -at(A,D,B) | D = C.  [resolve(49,a,48,a)].
+147 f3(A,B) != f2(A,B) | -at(A,C,B) | -at(A,D,B) | D = C.  [resolve(50,a,48,a)].
+148 -open(A,B) | at(f10(C,D,E,F,B),F,f11(C,D,E,F,B)) | enter(f10(C,D,E,F,B),F,f11(C,D,E,F,B)) | -node_empty(f10(C,D,E,F,B),B) | at(f12(C,D,E,F,B),F,f11(C,D,E,F,B)) | -less(f12(C,D,E,F,B),f10(C,D,E,F,B)) | enter(succ(C),D,E).  [resolve(51,b,52,d)].
+149 in = A | -open(B,A).  [resolve(53,a,51,b)].
+152 c1 = in.  [copy(151),flip(a)].
+153 less(A,A).  [factor(57,a,b)].
+154 at(f10(A,B,C,D,in),D,f11(A,B,C,D,in)) | enter(f10(A,B,C,D,in),D,f11(A,B,C,D,in)) | -node_empty(f10(A,B,C,D,in),in) | at(f12(A,B,C,D,in),D,f11(A,B,C,D,in)) | -less(f12(A,B,C,D,in),f10(A,B,C,D,in)) | enter(succ(A),B,C).  [back_rewrite(150),rewrite([152(1),152(3),152(6),152(8),152(11),152(13),152(15),152(17),152(20),152(22)])].
+155 -notBlocked(in).  [back_rewrite(144),rewrite([152(1)])].
+end_of_list.
+
+formulas(demodulators).
+60 pred(succ(A)) = A # label(pred) # label(axiom).  [clausify(5)].
+61 succ(pred(A)) = A # label(pred) # label(axiom).  [clausify(5)].
+94 switch(A,in) = s # label(switch_in_value) # label(axiom).  [clausify(28)].
+152 c1 = in.  [copy(151),flip(a)].
+end_of_list.
+
+============================== end of clauses for search =============
+
+============================== SEARCH ================================
+
+% Starting search at 0.01 seconds.
+
+given #1 (I,wt=9): 55 -less(A,B) | -less(B,A) | B = A # label(antisymmetry) # label(axiom).  [clausify(1)].
+
+given #2 (I,wt=9): 56 -less(A,B) | -less(B,C) | less(A,C) # label(transitivity) # label(axiom).  [clausify(2)].
+
+given #3 (I,wt=6): 57 less(A,B) | less(B,A) # label(totality) # label(axiom).  [clausify(3)].
+
+given #4 (I,wt=4): 58 less(A,succ(A)) # label(succ) # label(axiom).  [clausify(4)].
+
+given #5 (I,wt=7): 59 less(A,B) | less(succ(B),A) # label(succ) # label(axiom).  [clausify(4)].
+
+given #6 (I,wt=5): 60 pred(succ(A)) = A # label(pred) # label(axiom).  [clausify(5)].
+
+given #7 (I,wt=5): 61 succ(pred(A)) = A # label(pred) # label(axiom).  [clausify(5)].
+
+given #8 (I,wt=11): 62 -at(A,B,C) | -at(A,B,D) | D = C # label(at_uniq) # label(axiom).  [clausify(6)].
+
+given #9 (I,wt=8): 63 -at(A,B,C) | -enter(A,B,D) # label(at_nondup) # label(axiom).  [clausify(7)].
+
+given #10 (I,wt=8): 64 -at(A,B,C) | -enter(A,D,C) # label(input_nocol) # label(axiom).  [clausify(8)].
+
+given #11 (I,wt=11): 65 -enter(A,B,C) | -enter(A,D,C) | D = B # label(enter_uniq) # label(axiom).  [clausify(9)].
+
+given #12 (I,wt=8): 66 -at(A,B,C) | occupied(A,B,C) # label(occupied) # label(axiom).  [clausify(10)].
+
+given #13 (I,wt=7): 67 -node_empty(A,B) | -at(A,C,B) # label(node_empty) # label(axiom).  [clausify(11)].
+
+given #14 (I,wt=9): 68 node_empty(A,B) | at(A,f1(A,B),B) # label(node_empty) # label(axiom).  [clausify(11)].
+
+given #15 (I,wt=15): 69 -notBlocked(A) | -at(B,C,A) | open(B,A) | less(B,f4(A,B,C)) # label(not_blocked) # label(axiom).  [clausify(13)].
+
+given #16 (I,wt=15): 70 -notBlocked(A) | -at(B,C,A) | open(B,A) | open(f4(A,B,C),A) # label(not_blocked) # label(axiom).  [clausify(13)].
+
+given #17 (I,wt=8): 71 notBlocked(A) | at(f5(A),f6(A),A) # label(not_blocked) # label(axiom).  [clausify(13)].
+
+given #18 (I,wt=6): 72 notBlocked(A) | -open(f5(A),A) # label(not_blocked) # label(axiom).  [clausify(13)].
+
+given #19 (I,wt=9): 73 notBlocked(A) | -less(f5(A),B) | -open(B,A) # label(not_blocked) # label(axiom).  [clausify(13)].
+
+given #20 (I,wt=10): 74 -at(A,B,C) | less(A,f7(A,B,C)) # label(train_will_move) # label(axiom).  [clausify(14)].
+
+given #21 (I,wt=14): 75 -at(A,B,C) | enter(f8(A,B,C),B,f9(A,B,C)) # label(train_entered) # label(axiom).  [clausify(15)].
+
+given #22 (I,wt=10): 76 -at(A,B,C) | less(f8(A,B,C),A) # label(train_entered) # label(axiom).  [clausify(15)].
+
+given #23 (I,wt=11): 77 -occupied(A,B,C) | -occupied(A,D,C) | D = B # label(occupied_only_once) # label(axiom).  [clausify(16)].
+
+given #24 (I,wt=14): 78 node_empty(A,B) | switch(A,B) != C | switch(succ(A),B) = C # label(switch_restr) # label(axiom).  [clausify(17)].
+
+given #25 (I,wt=16): 79 -at(A,B,C) | out2 = C | s = C | in = C | out1 = C # label(at_restr) # label(axiom).  [clausify(20)].
+
+given #26 (I,wt=8): 80 gate(A) = out2 | gate(A) = out1 # label(gate_restr) # label(axiom).  [clausify(23)].
+
+given #27 (I,wt=3): 81 s != out2 # label(distinct_nodes) # label(axiom).  [clausify(24)].
+
+given #28 (I,wt=3): 83 out2 != in.  [copy(82),flip(a)].
+
+given #29 (I,wt=3): 85 out2 != out1.  [copy(84),flip(a)].
+
+given #30 (I,wt=3): 87 s != in.  [copy(86),flip(a)].
+
+given #31 (I,wt=3): 89 s != out1.  [copy(88),flip(a)].
+
+given #32 (I,wt=3): 90 out1 != in # label(distinct_nodes) # label(axiom).  [clausify(24)].
+
+given #33 (I,wt=16): 91 -occupied(A,B,C) | out2 = C | s = C | in = C | out1 = C # label(occupied_values) # label(axiom).  [clausify(25)].
+
+given #34 (I,wt=7): 92 -enter(A,B,C) | in = C # label(enter_values) # label(axiom).  [clausify(26)].
+
+given #35 (I,wt=10): 93 switch(A,s) = out1 | switch(A,s) = out2 # label(switch_s_value) # label(axiom).  [clausify(27)].
+
+given #36 (I,wt=5): 94 switch(A,in) = s # label(switch_in_value) # label(axiom).  [clausify(28)].
+
+given #37 (I,wt=13): 96 -occupied(A,B,s) | gate(B) != out2 | switch(A,s) = out2 # label(switch_s_out2) # label(axiom).  [clausify(30)].
+
+given #38 (I,wt=13): 98 -occupied(A,B,s) | gate(B) != out1 | switch(A,s) = out1 # label(switch_s_out1) # label(axiom).  [clausify(32)].
+
+given #39 (I,wt=13): 99 -enter(f13(A,B),f14(A,B),in) | at(succ(A),B,in) # label(move_input_no_change_in) # label(axiom).  [clausify(33)].
+
+given #40 (I,wt=18): 100 -at(f13(A,B),f14(A,B),in) | open(f13(A,B),in) | at(succ(A),B,in) # label(move_input_no_change_in) # label(axiom).  [clausify(33)].
+
+given #41 (I,wt=13): 101 -occupied(succ(A),B,out2) | occupied(A,B,out2) | at(A,B,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+
+given #42 (I,wt=13): 102 -occupied(succ(A),B,out2) | occupied(A,B,out2) | gate(B) = out2 # label(out2_occupied) # label(axiom).  [clausify(39)].
+
+given #43 (I,wt=12): 103 -occupied(succ(A),B,out2) | occupied(A,B,out2) | open(A,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+
+given #44 (I,wt=18): 104 -occupied(succ(A),B,out2) | -at(A,B,out2) | at(succ(A),B,out2) | at(A,B,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+
+given #45 (I,wt=18): 105 -occupied(succ(A),B,out2) | -at(A,B,out2) | at(succ(A),B,out2) | gate(B) = out2 # label(out2_occupied) # label(axiom).  [clausify(39)].
+
+given #46 (I,wt=17): 106 -occupied(succ(A),B,out2) | -at(A,B,out2) | at(succ(A),B,out2) | open(A,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+
+given #47 (I,wt=13): 107 occupied(succ(A),B,out2) | -occupied(A,B,out2) | at(A,B,out2) # label(out2_occupied) # label(axiom).  [clausify(39)].
+
+given #48 (I,wt=16): 108 occupied(succ(A),B,out2) | -at(A,B,in) | gate(B) != out2 | -open(A,in) # label(out2_occupied) # label(axiom).  [clausify(39)].
+
+given #49 (I,wt=13): 109 -occupied(succ(A),B,s) | occupied(A,B,s) | at(A,B,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+
+given #50 (I,wt=12): 110 -occupied(succ(A),B,s) | occupied(A,B,s) | open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+
+given #51 (I,wt=18): 111 -occupied(succ(A),B,s) | -at(A,B,s) | at(succ(A),B,s) | at(A,B,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+
+given #52 (I,wt=17): 112 -occupied(succ(A),B,s) | -at(A,B,s) | at(succ(A),B,s) | open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+
+given #53 (I,wt=13): 113 occupied(succ(A),B,s) | -occupied(A,B,s) | at(A,B,s) # label(s_occupied) # label(axiom).  [clausify(40)].
+
+given #54 (I,wt=16): 114 occupied(succ(A),B,s) | -at(A,B,in) | gate(B) != out2 | -open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+
+given #55 (I,wt=16): 115 occupied(succ(A),B,s) | -at(A,B,in) | gate(B) != out1 | -open(A,in) # label(s_occupied) # label(axiom).  [clausify(40)].
+
+given #56 (I,wt=13): 116 -occupied(succ(A),B,out1) | occupied(A,B,out1) | at(A,B,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+
+given #57 (I,wt=13): 117 -occupied(succ(A),B,out1) | occupied(A,B,out1) | gate(B) = out1 # label(out1_occupied) # label(axiom).  [clausify(41)].
+
+given #58 (I,wt=12): 118 -occupied(succ(A),B,out1) | occupied(A,B,out1) | open(A,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+
+given #59 (I,wt=18): 119 -occupied(succ(A),B,out1) | -at(A,B,out1) | at(succ(A),B,out1) | at(A,B,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+
+given #60 (I,wt=18): 120 -occupied(succ(A),B,out1) | -at(A,B,out1) | at(succ(A),B,out1) | gate(B) = out1 # label(out1_occupied) # label(axiom).  [clausify(41)].
+
+given #61 (I,wt=17): 121 -occupied(succ(A),B,out1) | -at(A,B,out1) | at(succ(A),B,out1) | open(A,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+
+given #62 (I,wt=13): 122 occupied(succ(A),B,out1) | -occupied(A,B,out1) | at(A,B,out1) # label(out1_occupied) # label(axiom).  [clausify(41)].
+
+given #63 (I,wt=16): 123 occupied(succ(A),B,out1) | -at(A,B,in) | gate(B) != out1 | -open(A,in) # label(out1_occupied) # label(axiom).  [clausify(41)].
+
+given #64 (I,wt=8): 124 -path_open(A,B,C,D) | in = C # label(open_values) # label(axiom).  [clausify(42)].
+
+given #65 (I,wt=11): 125 -path_open(A,B,C,D) | out2 = D | out1 = D # label(open_values) # label(axiom).  [clausify(42)].
+
+given #66 (I,wt=9): 126 -path_open(A,B,in,out2) | at(A,B,in) # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+
+given #67 (I,wt=9): 127 -path_open(A,B,in,out2) | gate(B) = out2 # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+
+given #68 (I,wt=12): 128 -path_open(A,B,in,out2) | -occupied(A,C,in) | C = B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+
+given #69 (I,wt=12): 129 -path_open(A,B,in,out2) | -occupied(A,C,s) | C = B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+
+given #70 (I,wt=12): 130 -path_open(A,B,in,out2) | -occupied(A,C,out2) | C = B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+
+given #71 (I,wt=13): 133 path_open(A,B,in,out2) | -at(A,B,in) | gate(B) != out2.  [copy(132),xx(d)].
+
+given #72 (I,wt=9): 134 -path_open(A,B,in,out1) | at(A,B,in) # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+
+given #73 (I,wt=9): 135 -path_open(A,B,in,out1) | gate(B) = out1 # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+
+given #74 (I,wt=12): 136 -path_open(A,B,in,out1) | -occupied(A,C,in) | C = B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+
+given #75 (I,wt=12): 137 -path_open(A,B,in,out1) | -occupied(A,C,s) | C = B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+
+given #76 (I,wt=12): 138 -path_open(A,B,in,out1) | -occupied(A,C,out1) | C = B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+
+given #77 (I,wt=13): 141 path_open(A,B,in,out1) | -at(A,B,in) | gate(B) != out1.  [copy(140),xx(d)].
+
+given #78 (I,wt=11): 142 -open(A,in) | path_open(A,f15(A),in,gate(f15(A))) # label(open_in) # label(axiom).  [clausify(45)].
+
+given #79 (I,wt=9): 143 open(A,in) | -path_open(A,B,in,gate(B)) # label(open_in) # label(axiom).  [clausify(45)].
+
+given #80 (I,wt=17): 145 at(A,f2(A,B),B) | -at(A,C,B) | -at(A,D,B) | D = C.  [resolve(47,a,48,a)].
+
+given #81 (I,wt=17): 146 at(A,f3(A,B),B) | -at(A,C,B) | -at(A,D,B) | D = C.  [resolve(49,a,48,a)].
+
+given #82 (I,wt=18): 147 f3(A,B) != f2(A,B) | -at(A,C,B) | -at(A,D,B) | D = C.  [resolve(50,a,48,a)].
+
+given #83 (I,wt=71): 148 -open(A,B) | at(f10(C,D,E,F,B),F,f11(C,D,E,F,B)) | enter(f10(C,D,E,F,B),F,f11(C,D,E,F,B)) | -node_empty(f10(C,D,E,F,B),B) | at(f12(C,D,E,F,B),F,f11(C,D,E,F,B)) | -less(f12(C,D,E,F,B),f10(C,D,E,F,B)) | enter(succ(C),D,E).  [resolve(51,b,52,d)].
+
+given #84 (I,wt=6): 149 in = A | -open(B,A).  [resolve(53,a,51,b)].
+
+given #85 (I,wt=3): 152 c1 = in.  [copy(151),flip(a)].
+
+given #86 (I,wt=3): 153 less(A,A).  [factor(57,a,b)].
+
+given #87 (I,wt=68): 154 at(f10(A,B,C,D,in),D,f11(A,B,C,D,in)) | enter(f10(A,B,C,D,in),D,f11(A,B,C,D,in)) | -node_empty(f10(A,B,C,D,in),in) | at(f12(A,B,C,D,in),D,f11(A,B,C,D,in)) | -less(f12(A,B,C,D,in),f10(A,B,C,D,in)) | enter(succ(A),B,C).  [back_rewrite(150),rewrite([152(1),152(3),152(6),152(8),152(11),152(13),152(15),152(17),152(20),152(22)])].
+
+given #88 (I,wt=2): 155 -notBlocked(in).  [back_rewrite(144),rewrite([152(1)])].
+
+given #89 (A,wt=9): 156 less(A,B) | -less(C,B) | less(C,A).  [resolve(57,a,56,b)].
+
+given #90 (F,wt=3): 234 -open(A,out1).  [ur(149,a,90,a(flip))].
+
+given #91 (F,wt=3): 235 -open(A,s).  [ur(149,a,87,a(flip))].
+
+given #92 (F,wt=3): 236 -open(A,out2).  [ur(149,a,83,a(flip))].
+
+given #93 (F,wt=4): 189 -enter(A,B,out1).  [ur(92,b,90,a(flip))].
+
+given #94 (T,wt=4): 166 less(pred(A),A).  [para(61(a,1),58(a,2))].
+
+given #95 (T,wt=6): 173 notBlocked(A) | -node_empty(f5(A),A).  [resolve(71,b,67,b)].
+
+given #96 (T,wt=7): 157 -less(A,B) | less(A,succ(B)).  [resolve(58,a,56,b)].
+
+given #97 (T,wt=5): 247 less(pred(A),succ(A)).  [resolve(157,a,166,a)].
+
+given #98 (A,wt=7): 158 -less(succ(A),B) | less(A,B).  [resolve(58,a,56,a)].
+
+given #99 (F,wt=4): 190 -enter(A,B,s).  [ur(92,b,87,a(flip))].
+
+given #100 (F,wt=4): 191 -enter(A,B,out2).  [ur(92,b,83,a(flip))].
+
+given #101 (F,wt=4): 237 -open(f5(in),in).  [ur(73,a,155,a,b,153,a)].
+
+given #102 (F,wt=4): 246 -node_empty(f5(in),in).  [ur(173,a,155,a)].
+
+given #103 (T,wt=5): 249 less(A,succ(succ(A))).  [resolve(157,a,58,a)].
+
+given #104 (T,wt=5): 255 less(pred(pred(A)),A).  [para(61(a,1),247(a,2))].
+
+given #105 (T,wt=6): 250 less(pred(A),succ(succ(A))).  [resolve(247,a,157,a)].
+
+given #106 (T,wt=6): 257 less(A,succ(succ(succ(A)))).  [resolve(249,a,158,a)].
+
+given #107 (A,wt=8): 159 -less(succ(A),A) | succ(A) = A.  [resolve(58,a,55,b),flip(b)].
+
+given #108 (F,wt=5): 218 -path_open(A,B,out1,C).  [ur(124,b,90,a(flip))].
+
+given #109 (F,wt=5): 219 -path_open(A,B,s,C).  [ur(124,b,87,a(flip))].
+
+given #110 (F,wt=5): 220 -path_open(A,B,out2,C).  [ur(124,b,83,a(flip))].
+
+given #111 (F,wt=5): 221 -path_open(A,B,C,in).  [ur(125,b,83,a,c,90,a)].
+
+given #112 (T,wt=6): 264 less(pred(pred(A)),succ(A)).  [resolve(255,a,157,a)].
+
+given #113 (T,wt=6): 286 less(pred(pred(pred(A))),A).  [para(61(a,1),264(a,2))].
+
+given #114 (T,wt=7): 167 less(A,pred(B)) | less(B,A).  [para(61(a,1),59(b,1))].
+
+given #115 (T,wt=7): 178 notBlocked(A) | -open(succ(f5(A)),A).  [resolve(73,b,58,a)].
+
+given #116 (A,wt=10): 160 less(succ(A),B) | -less(C,B) | less(C,A).  [resolve(59,a,56,b)].
+
+given #117 (F,wt=5): 222 -path_open(A,B,C,s).  [ur(125,b,81,a(flip),c,89,a(flip))].
+
+given #118 (F,wt=5): 238 -open(succ(f5(in)),in).  [ur(73,a,155,a,b,58,a)].
+
+given #119 (F,wt=6): 263 -open(succ(succ(f5(in))),in).  [ur(73,a,155,a,b,249,a)].
+
+given #120 (F,wt=7): 256 -path_open(f5(in),A,in,gate(A)).  [ur(143,a,237,a)].
+
+given #121 (T,wt=7): 240 less(A,succ(B)) | less(B,A).  [resolve(156,b,58,a)].
+
+given #122 (T,wt=7): 242 less(A,B) | less(pred(B),A).  [resolve(166,a,156,b)].
+
+given #123 (T,wt=7): 243 -less(A,pred(B)) | less(A,B).  [resolve(166,a,56,b)].
+
+given #124 (T,wt=7): 244 -less(A,B) | less(pred(A),B).  [resolve(166,a,56,a)].
+
+given #125 (A,wt=10): 161 less(succ(A),B) | -less(A,C) | less(B,C).  [resolve(59,a,56,a)].
+
+given #126 (F,wt=7): 280 -open(succ(succ(succ(f5(in)))),in).  [ur(73,a,155,a,b,257,a)].
+
+given #127 (F,wt=8): 313 -path_open(succ(f5(in)),A,in,gate(A)).  [ur(143,a,238,a)].
+
+given #128 (F,wt=9): 314 -path_open(succ(succ(f5(in))),A,in,gate(A)).  [ur(143,a,263,a)].
+
+given #129 (F,wt=10): 338 -path_open(succ(succ(succ(f5(in)))),A,in,gate(A)).  [ur(143,a,280,a)].
+
+given #130 (T,wt=7): 269 less(pred(A),succ(succ(succ(A)))).  [resolve(250,a,157,a)].
+
+given #131 (T,wt=7): 274 less(A,succ(succ(succ(succ(A))))).  [resolve(257,a,158,a)].
+
+given #132 (T,wt=7): 281 less(pred(pred(A)),succ(succ(A))).  [resolve(264,a,157,a)].
+
+given #133 (T,wt=7): 287 less(pred(pred(pred(A))),succ(A)).  [resolve(286,a,157,a)].
+
+given #134 (A,wt=10): 162 less(succ(A),B) | -less(A,B) | B = A.  [resolve(59,a,55,b)].
+
+given #135 (F,wt=8): 356 -open(succ(succ(succ(succ(f5(in))))),in).  [ur(73,a,155,a,b,274,a)].
+
+given #136 (F,wt=11): 373 -path_open(succ(succ(succ(succ(f5(in))))),A,in,gate(A)).  [ur(143,a,356,a)].
+
+given #137 (T,wt=7): 333 less(pred(pred(pred(pred(A)))),A).  [resolve(243,a,286,a)].
+
+given #138 (T,wt=8): 174 notBlocked(A) | occupied(f5(A),f6(A),A).  [resolve(71,b,66,a)].
+
+given #139 (T,wt=8): 245 -less(A,pred(A)) | pred(A) = A.  [resolve(166,a,55,b)].
+
+given #140 (T,wt=8): 248 less(succ(A),succ(B)) | less(B,A).  [resolve(157,a,59,b)].
+
+given #141 (A,wt=10): 163 less(succ(A),B) | -less(A,B) | A = B.  [resolve(59,a,55,a)].
+
+given #142 (T,wt=8): 251 less(A,succ(B)) | less(pred(B),A).  [resolve(247,a,156,b)].
+
+given #143 (T,wt=8): 252 -less(A,pred(B)) | less(A,succ(B)).  [resolve(247,a,56,b)].
+
+given #144 (T,wt=8): 253 -less(succ(A),B) | less(pred(A),B).  [resolve(247,a,56,a)].
+
+given #145 (T,wt=8): 258 less(A,succ(succ(B))) | less(B,A).  [resolve(249,a,156,b)].
+
+given #146 (A,wt=10): 164 less(A,B) | -less(C,succ(B)) | less(C,A).  [resolve(59,b,56,b)].
+
+given #147 (T,wt=8): 259 notBlocked(A) | -open(succ(succ(f5(A))),A).  [resolve(249,a,73,b)].
+
+given #148 (T,wt=8): 260 -less(A,B) | less(A,succ(succ(B))).  [resolve(249,a,56,b)].
+
+given #149 (T,wt=8): 261 -less(succ(succ(A)),B) | less(A,B).  [resolve(249,a,56,a)].
+
+given #150 (T,wt=8): 265 less(A,B) | less(pred(pred(B)),A).  [resolve(255,a,156,b)].
+
+given #151 (A,wt=11): 165 less(A,B) | -less(A,succ(B)) | succ(B) = A.  [resolve(59,b,55,b)].
+
+given #152 (T,wt=8): 266 -less(A,pred(pred(B))) | less(A,B).  [resolve(255,a,56,b)].
+
+given #153 (T,wt=8): 267 -less(A,B) | less(pred(pred(A)),B).  [resolve(255,a,56,a)].
+
+given #154 (T,wt=8): 292 less(A,succ(B)) | less(B,pred(A)).  [resolve(167,a,158,a)].
+
+given #155 (T,wt=8): 311 less(succ(A),B) | less(pred(B),A).  [resolve(160,b,166,a)].
+
+given #156 (A,wt=9): 168 node_empty(A,B) | occupied(A,f1(A,B),B).  [resolve(68,b,66,a)].
+
+given #157 (T,wt=8): 317 less(A,succ(B)) | less(B,succ(A)).  [resolve(240,a,158,a)].
+
+given #158 (T,wt=8): 326 less(pred(A),succ(B)) | less(B,A).  [resolve(242,a,158,a)].
+
+given #159 (T,wt=8): 334 less(pred(A),B) | less(pred(B),A).  [resolve(243,a,242,b)].
+
+given #160 (T,wt=8): 335 less(A,B) | less(pred(B),pred(A)).  [resolve(243,a,167,b)].
+
+given #161 (A,wt=12): 169 node_empty(A,B) | -at(A,f1(A,B),C) | B = C.  [resolve(68,b,62,b)].
+
+given #162 (F,wt=8): 533 -at(f5(in),f1(f5(in),in),out1).  [ur(169,a,246,a,c,90,a(flip))].
+
+given #163 (F,wt=8): 534 -at(f5(in),f1(f5(in),in),s).  [ur(169,a,246,a,c,87,a(flip))].
+
+given #164 (F,wt=8): 535 -at(f5(in),f1(f5(in),in),out2).  [ur(169,a,246,a,c,83,a(flip))].
+
+given #165 (T,wt=8): 342 less(pred(pred(A)),succ(succ(succ(A)))).  [resolve(269,a,244,a)].
+
+given #166 (T,wt=8): 344 less(pred(A),succ(succ(succ(succ(A))))).  [resolve(269,a,157,a)].
+
+given #167 (T,wt=8): 350 less(A,succ(succ(succ(succ(succ(A)))))).  [resolve(274,a,158,a)].
+
+given #168 (T,wt=8): 357 less(pred(pred(pred(A))),succ(succ(A))).  [resolve(281,a,244,a)].
+
+given #169 (A,wt=12): 170 node_empty(A,B) | -at(A,f1(A,B),C) | C = B.  [resolve(68,b,62,a)].
+
+given #170 (F,wt=9): 557 -open(succ(succ(succ(succ(succ(f5(in)))))),in).  [ur(73,a,155,a,b,350,a)].
+
+given #171 (F,wt=12): 564 -path_open(succ(succ(succ(succ(succ(f5(in)))))),A,in,gate(A)).  [ur(143,a,557,a)].
+
+given #172 (T,wt=8): 363 less(pred(pred(pred(pred(A)))),succ(A)).  [resolve(287,a,244,a)].
+
+given #173 (T,wt=8): 375 less(pred(pred(pred(pred(pred(A))))),A).  [resolve(333,a,244,a)].
+
+given #174 (T,wt=9): 179 notBlocked(A) | -open(B,A) | less(B,f5(A)).  [resolve(73,b,57,b)].
+
+given #175 (T,wt=9): 241 less(A,B) | less(C,A) | less(B,C).  [resolve(156,b,57,b)].
+
+given #176 (A,wt=16): 171 -notBlocked(A) | open(B,A) | less(B,f4(A,B,f1(B,A))) | node_empty(B,A).  [resolve(69,b,68,b)].
+
+given #177 (T,wt=9): 270 less(A,succ(succ(B))) | less(pred(B),A).  [resolve(250,a,156,b)].
+
+given #178 (T,wt=9): 271 -less(A,pred(B)) | less(A,succ(succ(B))).  [resolve(250,a,56,b)].
+
+given #179 (T,wt=9): 272 -less(succ(succ(A)),B) | less(pred(A),B).  [resolve(250,a,56,a)].
+
+given #180 (T,wt=9): 275 less(A,succ(succ(succ(B)))) | less(B,A).  [resolve(257,a,156,b)].
+
+given #181 (A,wt=16): 172 -notBlocked(A) | open(B,A) | open(f4(A,B,f1(B,A)),A) | node_empty(B,A).  [resolve(70,b,68,b)].
+
+given #182 (T,wt=9): 276 notBlocked(A) | -open(succ(succ(succ(f5(A)))),A).  [resolve(257,a,73,b)].
+
+given #183 (T,wt=9): 277 -less(A,B) | less(A,succ(succ(succ(B)))).  [resolve(257,a,56,b)].
+
+given #184 (T,wt=9): 278 -less(succ(succ(succ(A))),B) | less(A,B).  [resolve(257,a,56,a)].
+
+given #185 (T,wt=9): 282 less(A,succ(B)) | less(pred(pred(B)),A).  [resolve(264,a,156,b)].
+
+given #186 (A,wt=11): 175 notBlocked(A) | -at(f5(A),f6(A),B) | A = B.  [resolve(71,b,62,b)].
+
+given #187 (F,wt=6): 637 -at(f5(in),f6(in),out1).  [ur(175,a,155,a,c,90,a(flip))].
+
+given #188 (F,wt=6): 638 -at(f5(in),f6(in),s).  [ur(175,a,155,a,c,87,a(flip))].
+
+given #189 (F,wt=6): 639 -at(f5(in),f6(in),out2).  [ur(175,a,155,a,c,83,a(flip))].
+
+given #190 (T,wt=9): 283 -less(A,pred(pred(B))) | less(A,succ(B)).  [resolve(264,a,56,b)].
+
+given #191 (T,wt=9): 284 -less(succ(A),B) | less(pred(pred(A)),B).  [resolve(264,a,56,a)].
+
+given #192 (T,wt=9): 288 less(A,B) | less(pred(pred(pred(B))),A).  [resolve(286,a,156,b)].
+
+given #193 (T,wt=9): 289 -less(A,pred(pred(pred(B)))) | less(A,B).  [resolve(286,a,56,b)].
+
+given #194 (A,wt=11): 176 notBlocked(A) | -at(f5(A),f6(A),B) | B = A.  [resolve(71,b,62,a)].
+
+given #195 (T,wt=9): 290 -less(A,B) | less(pred(pred(pred(A))),B).  [resolve(286,a,56,a)].
+
+given #196 (T,wt=9): 305 less(succ(A),B) | less(pred(pred(B)),A).  [resolve(160,b,255,a)].
+
+given #197 (T,wt=9): 307 less(succ(A),succ(succ(B))) | less(B,A).  [resolve(160,b,249,a)].
+
+given #198 (T,wt=9): 308 less(succ(A),succ(B)) | less(pred(B),A).  [resolve(160,b,247,a)].
+
+given #199 (A,wt=10): 177 notBlocked(A) | -open(B,A) | less(succ(B),f5(A)).  [resolve(73,b,59,a)].
+
+given #200 (T,wt=9): 398 less(pred(A),B) | less(pred(B),succ(A)).  [resolve(251,a,244,a)].
+
+given #201 (T,wt=9): 401 less(pred(A),succ(B)) | less(B,succ(A)).  [resolve(251,a,158,a)].
+
+given #202 (T,wt=9): 407 less(pred(pred(pred(pred(pred(A))))),succ(A)).  [resolve(252,a,333,a)].
+
+given #203 (T,wt=9): 409 less(A,succ(B)) | less(pred(B),pred(A)).  [resolve(252,a,167,b)].
+
+given #204 (A,wt=11): 180 less(f5(A),f7(f5(A),f6(A),A)) | notBlocked(A).  [resolve(74,a,71,b)].
+
+given #205 (T,wt=9): 410 less(pred(A),succ(succ(succ(succ(succ(A)))))).  [resolve(253,a,274,a)].
+
+given #206 (T,wt=9): 412 less(A,B) | less(pred(B),succ(succ(A))).  [resolve(258,a,244,a)].
+
+given #207 (T,wt=9): 415 less(A,succ(B)) | less(B,succ(succ(A))).  [resolve(258,a,158,a)].
+
+given #208 (T,wt=9): 423 less(pred(pred(pred(pred(A)))),succ(succ(A))).  [resolve(260,a,333,a)].
+
+given #209 (A,wt=11): 181 less(A,f7(A,f1(A,B),B)) | node_empty(A,B).  [resolve(74,a,68,b)].
+
+given #210 (T,wt=9): 424 less(pred(pred(pred(A))),succ(succ(succ(A)))).  [resolve(260,a,287,a)].
+
+given #211 (T,wt=9): 425 less(pred(pred(A)),succ(succ(succ(succ(A))))).  [resolve(260,a,281,a)].
+
+given #212 (T,wt=9): 426 less(A,succ(succ(succ(succ(succ(succ(A))))))).  [resolve(260,a,274,a)].
+
+given #213 (T,wt=9): 428 less(A,succ(succ(B))) | less(B,pred(A)).  [resolve(260,a,167,b)].
+
+given #214 (A,wt=17): 182 enter(f8(f5(A),f6(A),A),f6(A),f9(f5(A),f6(A),A)) | notBlocked(A).  [resolve(75,a,71,b)].
+
+given #215 (F,wt=10): 837 -open(succ(succ(succ(succ(succ(succ(f5(in))))))),in).  [ur(73,a,155,a,b,426,a)].
+
+given #216 (F,wt=13): 859 -path_open(succ(succ(succ(succ(succ(succ(f5(in))))))),A,in,gate(A)).  [ur(143,a,837,a)].
+
+given #217 (T,wt=9): 431 less(pred(pred(A)),B) | less(pred(B),A).  [resolve(265,a,244,a)].
+
+given #218 (T,wt=9): 434 less(pred(pred(A)),succ(B)) | less(B,A).  [resolve(265,a,158,a)].
+
+given #219 (T,wt=9): 443 less(pred(pred(pred(pred(pred(pred(A)))))),A).  [resolve(266,a,333,a)].
+
+given #220 (T,wt=9): 445 less(A,B) | less(pred(pred(B)),pred(A)).  [resolve(266,a,167,b)].
+
+given #221 (A,wt=19): 183 enter(f8(A,f1(A,B),B),f1(A,B),f9(A,f1(A,B),B)) | node_empty(A,B).  [resolve(75,a,68,b)].
+
+given #222 (T,wt=10): 239 less(A,B) | less(succ(C),A) | less(B,C).  [resolve(156,b,59,b)].
+
+given #223 (T,wt=10): 254 -less(succ(A),pred(A)) | pred(A) = succ(A).  [resolve(247,a,55,b)].
+
+given #224 (T,wt=10): 262 -less(succ(succ(A)),A) | succ(succ(A)) = A.  [resolve(249,a,55,b),flip(b)].
+
+given #225 (T,wt=10): 268 -less(A,pred(pred(A))) | pred(pred(A)) = A.  [resolve(255,a,55,b)].
+
+given #226 (A,wt=11): 184 less(f8(f5(A),f6(A),A),f5(A)) | notBlocked(A).  [resolve(76,a,71,b)].
+
+given #227 (T,wt=10): 293 less(A,B) | less(C,pred(A)) | less(B,C).  [resolve(167,a,156,b)].
+
+given #228 (T,wt=10): 294 less(A,f5(B)) | notBlocked(B) | -open(pred(A),B).  [resolve(167,a,73,b)].
+
+given #229 (T,wt=10): 295 less(A,B) | -less(C,B) | less(C,pred(A)).  [resolve(167,a,56,b)].
+
+given #230 (T,wt=10): 296 less(A,B) | -less(pred(A),C) | less(B,C).  [resolve(167,a,56,a)].
+
+given #231 (A,wt=11): 185 less(f8(A,f1(A,B),B),A) | node_empty(A,B).  [resolve(76,a,68,b)].
+
+given #232 (T,wt=10): 298 less(A,pred(f5(B))) | notBlocked(B) | -open(A,B).  [resolve(167,b,73,b)].
+
+given #233 (T,wt=10): 299 less(A,pred(B)) | -less(C,B) | less(C,A).  [resolve(167,b,56,b)].
+
+given #234 (T,wt=10): 300 less(A,pred(B)) | -less(A,B) | B = A.  [resolve(167,b,55,b)].
+
+given #235 (T,wt=10): 301 less(A,pred(B)) | -less(A,B) | A = B.  [resolve(167,b,55,a)].
+
+given #236 (A,wt=11): 186 node_empty(A,B) | switch(succ(A),B) = switch(A,B).  [resolve(78,b,61,a(flip)),rewrite([61(6)])].
+
+given #237 (T,wt=10): 302 less(succ(A),B) | less(pred(pred(pred(B))),A).  [resolve(160,b,286,a)].
+
+given #238 (T,wt=10): 303 less(succ(A),succ(B)) | less(pred(pred(B)),A).  [resolve(160,b,264,a)].
+
+given #239 (T,wt=10): 304 less(succ(A),succ(succ(succ(B)))) | less(B,A).  [resolve(160,b,257,a)].
+
+given #240 (T,wt=10): 306 less(succ(A),succ(succ(B))) | less(pred(B),A).  [resolve(160,b,250,a)].
+
+given #241 (A,wt=14): 187 out2 = A | s = A | in = A | out1 = A | notBlocked(A).  [resolve(79,a,71,b)].
+
+given #242 (T,wt=10): 315 gate(A) = out1 | -path_open(f5(in),A,in,out2).  [para(80(a,1),256(a,4))].
+
+given #243 (T,wt=10): 318 less(A,B) | less(C,succ(A)) | less(B,C).  [resolve(240,a,156,b)].
+
+given #244 (T,wt=10): 319 less(A,f5(B)) | notBlocked(B) | -open(succ(A),B).  [resolve(240,a,73,b)].
+
+given #245 (T,wt=10): 320 less(A,B) | -less(C,B) | less(C,succ(A)).  [resolve(240,a,56,b)].
+
+given #246 (A,wt=15): 188 out2 = A | s = A | in = A | out1 = A | node_empty(B,A).  [resolve(79,a,68,b)].
+
+given #247 (T,wt=10): 321 less(A,B) | -less(succ(A),C) | less(B,C).  [resolve(240,a,56,a)].
+
+given #248 (T,wt=10): 323 less(A,succ(f5(B))) | notBlocked(B) | -open(A,B).  [resolve(240,b,73,b)].
+
+given #249 (T,wt=10): 324 less(A,succ(B)) | -less(C,B) | less(C,A).  [resolve(240,b,56,b)].
+
+given #250 (T,wt=10): 327 less(pred(A),B) | less(C,A) | less(B,C).  [resolve(242,a,156,b)].
+
+given #251 (A,wt=14): 192 switch(A,s) = out1 | node_empty(A,s) | switch(succ(A),s) = out2.  [resolve(93,b,78,b)].
+
+given #252 (T,wt=10): 328 less(pred(A),f5(B)) | notBlocked(B) | -open(A,B).  [resolve(242,a,73,b)].
+
+given #253 (T,wt=10): 329 less(pred(A),B) | -less(C,B) | less(C,A).  [resolve(242,a,56,b)].
+
+given #254 (T,wt=10): 330 less(pred(A),B) | -less(A,C) | less(B,C).  [resolve(242,a,56,a)].
+
+given #255 (T,wt=10): 332 less(A,B) | -less(C,pred(B)) | less(C,A).  [resolve(242,b,56,b)].
+
+given #256 (A,wt=17): 193 switch(A,s) = out1 | node_empty(A,s) | out2 != B | switch(succ(A),s) = B.  [para(93(b,1),78(b,1))].
+
+given #257 (T,wt=10): 345 less(A,succ(succ(succ(B)))) | less(pred(B),A).  [resolve(269,a,156,b)].
+
+given #258 (T,wt=10): 346 -less(A,pred(B)) | less(A,succ(succ(succ(B)))).  [resolve(269,a,56,b)].
+
+given #259 (T,wt=10): 347 -less(succ(succ(succ(A))),B) | less(pred(A),B).  [resolve(269,a,56,a)].
+
+given #260 (T,wt=10): 351 less(A,succ(succ(succ(succ(B))))) | less(B,A).  [resolve(274,a,156,b)].
+
+given #261 (A,wt=14): 194 -occupied(A,B,out2) | occupied(pred(A),B,out2) | at(pred(A),B,in).  [para(61(a,1),101(a,1))].
+
+given #262 (T,wt=10): 352 notBlocked(A) | -open(succ(succ(succ(succ(f5(A))))),A).  [resolve(274,a,73,b)].
+
+given #263 (T,wt=10): 353 -less(A,B) | less(A,succ(succ(succ(succ(B))))).  [resolve(274,a,56,b)].
+
+given #264 (T,wt=10): 354 -less(succ(succ(succ(succ(A)))),B) | less(A,B).  [resolve(274,a,56,a)].
+
+given #265 (T,wt=10): 359 less(A,succ(succ(B))) | less(pred(pred(B)),A).  [resolve(281,a,156,b)].
+
+given #266 (A,wt=13): 195 -occupied(A,B,out2) | occupied(pred(A),B,out2) | gate(B) = out2.  [para(61(a,1),102(a,1))].
+
+given #267 (T,wt=10): 360 -less(A,pred(pred(B))) | less(A,succ(succ(B))).  [resolve(281,a,56,b)].
+
+given #268 (T,wt=10): 361 -less(succ(succ(A)),B) | less(pred(pred(A)),B).  [resolve(281,a,56,a)].
+
+given #269 (T,wt=10): 365 less(A,succ(B)) | less(pred(pred(pred(B))),A).  [resolve(287,a,156,b)].
+
+given #270 (T,wt=10): 366 -less(A,pred(pred(pred(B)))) | less(A,succ(B)).  [resolve(287,a,56,b)].
+
+given #271 (A,wt=13): 196 -occupied(A,B,out2) | occupied(pred(A),B,out2) | open(pred(A),in).  [para(61(a,1),103(a,1))].
+
+given #272 (T,wt=10): 367 -less(succ(A),B) | less(pred(pred(pred(A))),B).  [resolve(287,a,56,a)].
+
+given #273 (T,wt=10): 377 less(A,B) | less(pred(pred(pred(pred(B)))),A).  [resolve(333,a,156,b)].
+
+given #274 (T,wt=10): 378 -less(A,pred(pred(pred(pred(B))))) | less(A,B).  [resolve(333,a,56,b)].
+
+given #275 (T,wt=10): 379 -less(A,B) | less(pred(pred(pred(pred(A)))),B).  [resolve(333,a,56,a)].
+
+given #276 (A,wt=18): 197 -occupied(A,B,out2) | -at(pred(A),B,out2) | at(A,B,out2) | at(pred(A),B,in).  [para(61(a,1),104(a,1)),rewrite([61(7)])].
+
+given #277 (T,wt=10): 408 less(pred(A),succ(B)) | less(pred(B),succ(A)).  [resolve(252,a,251,b)].
+
+given #278 (T,wt=10): 411 less(A,succ(B)) | less(pred(B),succ(succ(A))).  [resolve(258,a,253,a)].
+
+given #279 (T,wt=10): 427 less(A,succ(succ(B))) | less(B,succ(succ(A))).  [resolve(260,a,258,b)].
+
+given #280 (T,wt=10): 429 less(pred(pred(A)),succ(succ(B))) | less(B,A).  [resolve(265,a,261,a)].
+
+given #281 (A,wt=17): 198 -occupied(A,B,out2) | -at(pred(A),B,out2) | at(A,B,out2) | gate(B) = out2.  [para(61(a,1),105(a,1)),rewrite([61(7)])].
+
+given #282 (T,wt=10): 430 less(pred(pred(A)),succ(B)) | less(pred(B),A).  [resolve(265,a,253,a)].
+
+given #283 (T,wt=10): 444 less(pred(pred(A)),B) | less(pred(pred(B)),A).  [resolve(266,a,265,b)].
+
+given #284 (T,wt=10): 446 less(A,pred(B)) | less(B,succ(succ(succ(A)))).  [resolve(292,a,260,a)].
+
+given #285 (T,wt=10): 455 less(A,succ(B)) | less(pred(pred(B)),pred(A)).  [resolve(292,b,267,a)].
+
+given #286 (A,wt=17): 199 -occupied(A,B,out2) | -at(pred(A),B,out2) | at(A,B,out2) | open(pred(A),in).  [para(61(a,1),106(a,1)),rewrite([61(7)])].
+
+given #287 (T,wt=10): 456 less(A,succ(succ(B))) | less(pred(B),pred(A)).  [resolve(292,b,253,a)].
+
+given #288 (T,wt=10): 485 less(A,succ(B)) | less(pred(pred(B)),succ(A)).  [resolve(317,a,267,a)].
+
+given #289 (T,wt=10): 486 less(A,succ(succ(succ(B)))) | less(B,succ(A)).  [resolve(317,a,261,a)].
+
+given #290 (T,wt=10): 487 less(A,succ(succ(B))) | less(pred(B),succ(A)).  [resolve(317,a,253,a)].
+
+given #291 (A,wt=19): 201 occupied(succ(A),f1(A,in),out2) | gate(f1(A,in)) != out2 | -open(A,in) | node_empty(A,in).  [resolve(108,b,68,b)].
+
+given #292 (T,wt=10): 494 less(A,B) | less(pred(pred(pred(B))),succ(A)).  [resolve(326,a,267,a)].
+
+given #293 (T,wt=10): 495 less(A,B) | less(pred(B),succ(succ(succ(A)))).  [resolve(326,a,260,a)].
+
+given #294 (T,wt=10): 501 less(pred(A),succ(B)) | less(pred(pred(B)),A).  [resolve(326,b,267,a)].
+
+given #295 (T,wt=10): 502 less(pred(A),succ(succ(B))) | less(pred(B),A).  [resolve(326,b,253,a)].
+
+given #296 (A,wt=14): 202 -occupied(A,B,s) | occupied(pred(A),B,s) | at(pred(A),B,in).  [para(61(a,1),109(a,1))].
+
+given #297 (T,wt=10): 510 less(pred(A),B) | less(pred(pred(pred(B))),A).  [resolve(334,a,267,a)].
+
+given #298 (T,wt=10): 516 less(pred(pred(pred(A))),pred(B)) | less(B,A).  [resolve(335,a,266,a)].
+
+given #299 (T,wt=10): 536 less(pred(pred(pred(pred(A)))),succ(succ(succ(A)))).  [resolve(342,a,267,a)].
+
+given #300 (T,wt=10): 537 less(pred(pred(A)),succ(succ(succ(succ(succ(A)))))).  [resolve(342,a,260,a)].
+
+given #301 (A,wt=13): 203 -occupied(A,B,s) | occupied(pred(A),B,s) | open(pred(A),in).  [para(61(a,1),110(a,1))].
+
+given #302 (T,wt=10): 543 less(pred(pred(pred(A))),succ(succ(succ(succ(A))))).  [resolve(344,a,267,a)].
+
+given #303 (T,wt=10): 544 less(pred(A),succ(succ(succ(succ(succ(succ(A))))))).  [resolve(344,a,260,a)].
+
+given #304 (T,wt=10): 550 less(A,succ(succ(succ(succ(succ(succ(succ(A)))))))).  [resolve(350,a,261,a)].
+
+given #305 (T,wt=10): 558 less(pred(pred(pred(pred(pred(A))))),succ(succ(A))).  [resolve(357,a,267,a)].
+
+given #306 (A,wt=18): 204 -occupied(A,B,s) | -at(pred(A),B,s) | at(A,B,s) | at(pred(A),B,in).  [para(61(a,1),111(a,1)),rewrite([61(7)])].
+
+given #307 (F,wt=11): 1722 -open(succ(succ(succ(succ(succ(succ(succ(f5(in)))))))),in).  [ur(73,a,155,a,b,550,a)].
+
+given #308 (F,wt=14): 1727 -path_open(succ(succ(succ(succ(succ(succ(succ(f5(in)))))))),A,in,gate(A)).  [ur(143,a,1722,a)].
+
+given #309 (T,wt=10): 566 less(pred(pred(pred(pred(pred(pred(A)))))),succ(A)).  [resolve(363,a,267,a)].
+
+given #310 (T,wt=10): 572 less(pred(pred(pred(pred(pred(pred(pred(A))))))),A).  [resolve(375,a,267,a)].
+
+given #311 (T,wt=10): 766 notBlocked(A) | -open(f7(f5(A),f6(A),A),A).  [resolve(180,a,73,b),merge(b)].
+
+given #312 (T,wt=10): 855 notBlocked(A) | f9(f5(A),f6(A),A) = in.  [resolve(182,a,92,a),flip(b)].
+
+given #313 (A,wt=17): 205 -occupied(A,B,s) | -at(pred(A),B,s) | at(A,B,s) | open(pred(A),in).  [para(61(a,1),112(a,1)),rewrite([61(7)])].
+
+given #314 (F,wt=8): 1737 -open(f7(f5(in),f6(in),in),in).  [ur(766,a,155,a)].
+
+given #315 (F,wt=11): 1741 -path_open(f7(f5(in),f6(in),in),A,in,gate(A)).  [ur(143,a,1737,a)].
+
+given #316 (T,wt=8): 1740 f9(f5(in),f6(in),in) = in.  [resolve(855,a,155,a)].
+
+given #317 (T,wt=10): 1743 enter(f8(f5(in),f6(in),in),f6(in),in).  [para(1740(a,1),182(a,3)),unit_del(b,155)].
+
+given #318 (T,wt=11): 297 less(A,B) | -less(pred(A),B) | pred(A) = B.  [resolve(167,a,55,b),flip(c)].
+
+given #319 (T,wt=11): 309 less(succ(A),B) | less(C,A) | less(B,pred(C)).  [resolve(160,b,167,b)].
+
+given #320 (A,wt=19): 207 occupied(succ(A),f1(A,in),s) | gate(f1(A,in)) != out2 | -open(A,in) | node_empty(A,in).  [resolve(114,b,68,b)].
+
+given #321 (F,wt=9): 1745 -at(f8(f5(in),f6(in),in),A,in).  [resolve(1743,a,64,b)].
+
+given #322 (F,wt=10): 1746 -at(f8(f5(in),f6(in),in),f6(in),A).  [resolve(1743,a,63,b)].
+
+given #323 (F,wt=10): 1802 -path_open(f8(f5(in),f6(in),in),A,in,out1).  [ur(134,b,1745,a)].
+
+given #324 (F,wt=10): 1803 -path_open(f8(f5(in),f6(in),in),A,in,out2).  [ur(126,b,1745,a)].
+
+given #325 (T,wt=8): 1801 node_empty(f8(f5(in),f6(in),in),in).  [resolve(1745,a,68,b)].
+
+given #326 (T,wt=11): 310 less(succ(A),pred(B)) | less(C,A) | less(B,C).  [resolve(160,b,167,a)].
+
+given #327 (T,wt=11): 312 less(succ(A),B) | less(succ(C),A) | less(B,C).  [resolve(160,b,59,b)].
+
+given #328 (T,wt=11): 316 less(A,B) | less(succ(C),succ(A)) | less(B,C).  [resolve(240,a,160,b)].
+
+given #329 (A,wt=19): 209 occupied(succ(A),f1(A,in),s) | gate(f1(A,in)) != out1 | -open(A,in) | node_empty(A,in).  [resolve(115,b,68,b)].
+
+given #330 (T,wt=11): 322 less(A,succ(B)) | less(succ(C),A) | less(B,C).  [resolve(240,b,160,b)].
+
+given #331 (T,wt=11): 325 less(pred(A),B) | less(succ(C),A) | less(B,C).  [resolve(242,a,160,b)].
+
+given #332 (T,wt=11): 331 less(A,B) | less(succ(C),A) | less(pred(B),C).  [resolve(242,b,160,b)].
+
+given #333 (T,wt=11): 336 less(succ(A),B) | less(B,C) | less(C,pred(A)).  [resolve(161,b,167,b)].
+
+given #334 (A,wt=14): 210 -occupied(A,B,out1) | occupied(pred(A),B,out1) | at(pred(A),B,in).  [para(61(a,1),116(a,1))].
+
+given #335 (T,wt=11): 337 less(succ(succ(A)),B) | less(B,C) | less(C,A).  [resolve(161,b,59,b)].
+
+given #336 (T,wt=11): 339 gate(A) = out1 | -path_open(succ(f5(in)),A,in,out2).  [para(80(a,1),313(a,4))].
+
+given #337 (T,wt=11): 343 less(succ(A),succ(succ(succ(B)))) | less(pred(B),A).  [resolve(269,a,160,b)].
+
+given #338 (T,wt=11): 349 less(succ(A),succ(succ(succ(succ(B))))) | less(B,A).  [resolve(274,a,160,b)].
+
+given #339 (A,wt=13): 211 -occupied(A,B,out1) | occupied(pred(A),B,out1) | gate(B) = out1.  [para(61(a,1),117(a,1))].
+
+given #340 (T,wt=11): 358 less(succ(A),succ(succ(B))) | less(pred(pred(B)),A).  [resolve(281,a,160,b)].
+
+given #341 (T,wt=11): 364 less(succ(A),succ(B)) | less(pred(pred(pred(B))),A).  [resolve(287,a,160,b)].
+
+given #342 (T,wt=11): 369 less(succ(A),B) | B = A | less(B,pred(A)).  [resolve(162,b,167,b)].
+
+given #343 (T,wt=11): 372 less(succ(A),B) | B = A | less(succ(B),A).  [resolve(162,b,59,a)].
+
+given #344 (A,wt=13): 212 -occupied(A,B,out1) | occupied(pred(A),B,out1) | open(pred(A),in).  [para(61(a,1),118(a,1))].
+
+given #345 (T,wt=11): 376 less(succ(A),B) | less(pred(pred(pred(pred(B)))),A).  [resolve(333,a,160,b)].
+
+given #346 (T,wt=11): 383 notBlocked(A) | -occupied(f5(A),B,A) | f6(A) = B.  [resolve(174,b,77,b)].
+
+given #347 (T,wt=11): 387 less(A,B) | -less(C,succ(B)) | less(C,succ(A)).  [resolve(248,a,56,b)].
+
+given #348 (T,wt=11): 388 less(A,B) | -less(succ(A),C) | less(succ(B),C).  [resolve(248,a,56,a)].
+
+given #349 (A,wt=18): 213 -occupied(A,B,out1) | -at(pred(A),B,out1) | at(A,B,out1) | at(pred(A),B,in).  [para(61(a,1),119(a,1)),rewrite([61(7)])].
+
+given #350 (T,wt=11): 391 less(succ(A),succ(f5(B))) | notBlocked(B) | -open(A,B).  [resolve(248,b,73,b)].
+
+given #351 (T,wt=11): 392 less(succ(A),succ(B)) | -less(C,B) | less(C,A).  [resolve(248,b,56,b)].
+
+given #352 (T,wt=11): 393 less(succ(A),succ(B)) | -less(A,C) | less(B,C).  [resolve(248,b,56,a)].
+
+given #353 (T,wt=11): 394 less(succ(A),succ(B)) | -less(A,B) | B = A.  [resolve(248,b,55,b)].
+
+given #354 (A,wt=17): 214 -occupied(A,B,out1) | -at(pred(A),B,out1) | at(A,B,out1) | gate(B) = out1.  [para(61(a,1),120(a,1)),rewrite([61(7)])].
+
+given #355 (T,wt=11): 395 less(succ(A),succ(B)) | -less(A,B) | A = B.  [resolve(248,b,55,a)].
+
+given #356 (T,wt=11): 397 less(succ(A),B) | A = B | less(B,pred(A)).  [resolve(163,b,167,b)].
+
+given #357 (T,wt=11): 402 less(pred(A),B) | less(C,succ(A)) | less(B,C).  [resolve(251,a,156,b)].
+
+given #358 (T,wt=11): 403 less(pred(A),f5(B)) | notBlocked(B) | -open(succ(A),B).  [resolve(251,a,73,b)].
+
+given #359 (A,wt=17): 215 -occupied(A,B,out1) | -at(pred(A),B,out1) | at(A,B,out1) | open(pred(A),in).  [para(61(a,1),121(a,1)),rewrite([61(7)])].
+
+given #360 (T,wt=11): 404 less(pred(A),B) | -less(C,B) | less(C,succ(A)).  [resolve(251,a,56,b)].
+
+given #361 (T,wt=11): 405 less(pred(A),B) | -less(succ(A),C) | less(B,C).  [resolve(251,a,56,a)].
+
+given #362 (T,wt=11): 406 less(A,succ(B)) | -less(C,pred(B)) | less(C,A).  [resolve(251,b,56,b)].
+
+given #363 (T,wt=11): 416 less(A,B) | less(C,succ(succ(A))) | less(B,C).  [resolve(258,a,156,b)].
+
+given #364 (A,wt=19): 217 occupied(succ(A),f1(A,in),out1) | gate(f1(A,in)) != out1 | -open(A,in) | node_empty(A,in).  [resolve(123,b,68,b)].
+
+given #365 (T,wt=11): 417 less(A,f5(B)) | notBlocked(B) | -open(succ(succ(A)),B).  [resolve(258,a,73,b)].
+
+given #366 (T,wt=11): 418 less(A,B) | -less(C,B) | less(C,succ(succ(A))).  [resolve(258,a,56,b)].
+
+given #367 (T,wt=11): 419 less(A,B) | -less(succ(succ(A)),C) | less(B,C).  [resolve(258,a,56,a)].
+
+given #368 (T,wt=11): 420 less(A,succ(succ(f5(B)))) | notBlocked(B) | -open(A,B).  [resolve(258,b,73,b)].
+
+given #369 (A,wt=12): 223 path_open(f5(in),f6(in),in,out2) | gate(f6(in)) != out2.  [resolve(133,b,71,b),unit_del(c,155)].
+
+given #370 (T,wt=11): 421 less(A,succ(succ(B))) | -less(C,B) | less(C,A).  [resolve(258,b,56,b)].
+
+given #371 (T,wt=11): 435 less(pred(pred(A)),B) | less(C,A) | less(B,C).  [resolve(265,a,156,b)].
+
+given #372 (T,wt=11): 436 less(pred(pred(A)),f5(B)) | notBlocked(B) | -open(A,B).  [resolve(265,a,73,b)].
+
+given #373 (T,wt=11): 437 less(pred(pred(A)),B) | -less(C,B) | less(C,A).  [resolve(265,a,56,b)].
+
+given #374 (A,wt=16): 224 path_open(A,f1(A,in),in,out2) | gate(f1(A,in)) != out2 | node_empty(A,in).  [resolve(133,b,68,b)].
+
+given #375 (T,wt=11): 438 less(pred(pred(A)),B) | -less(A,C) | less(B,C).  [resolve(265,a,56,a)].
+
+given #376 (T,wt=11): 439 less(A,B) | -less(C,pred(pred(B))) | less(C,A).  [resolve(265,b,56,b)].
+
+given #377 (T,wt=11): 450 less(A,pred(B)) | less(C,succ(A)) | less(B,C).  [resolve(292,a,156,b)].
+
+given #378 (T,wt=11): 451 less(A,pred(f5(B))) | notBlocked(B) | -open(succ(A),B).  [resolve(292,a,73,b)].
+
+given #379 (A,wt=12): 225 path_open(f5(in),f6(in),in,out1) | gate(f6(in)) != out1.  [resolve(141,b,71,b),unit_del(c,155)].
+
+given #380 (T,wt=11): 452 less(A,pred(B)) | -less(C,B) | less(C,succ(A)).  [resolve(292,a,56,b)].
+
+given #381 (T,wt=11): 453 less(A,pred(B)) | -less(succ(A),C) | less(B,C).  [resolve(292,a,56,a)].
+
+given #382 (T,wt=11): 458 less(A,succ(B)) | less(C,pred(A)) | less(B,C).  [resolve(292,b,156,b)].
+
+given #383 (T,wt=11): 459 less(A,succ(f5(B))) | notBlocked(B) | -open(pred(A),B).  [resolve(292,b,73,b)].
+
+given #384 (A,wt=16): 226 path_open(A,f1(A,in),in,out1) | gate(f1(A,in)) != out1 | node_empty(A,in).  [resolve(141,b,68,b)].
+
+given #385 (T,wt=11): 460 less(A,succ(B)) | -less(C,B) | less(C,pred(A)).  [resolve(292,b,56,b)].
+
+given #386 (T,wt=11): 461 less(A,succ(B)) | -less(pred(A),C) | less(B,C).  [resolve(292,b,56,a)].
+
+given #387 (T,wt=11): 466 less(pred(A),B) | -less(C,succ(B)) | less(C,A).  [resolve(311,a,56,b)].
+
+given #388 (T,wt=11): 467 less(pred(A),B) | -less(A,C) | less(succ(B),C).  [resolve(311,a,56,a)].
+
+given #389 (A,wt=12): 227 gate(A) = out1 | open(B,in) | -path_open(B,A,in,out2).  [para(80(a,1),143(b,4))].
+
+given #390 (T,wt=11): 471 less(succ(A),B) | -less(C,pred(B)) | less(C,A).  [resolve(311,b,56,b)].
+
+given #391 (T,wt=11): 472 less(succ(A),B) | -less(A,C) | less(pred(B),C).  [resolve(311,b,56,a)].
+
+given #392 (T,wt=11): 489 less(A,succ(B)) | less(C,succ(A)) | less(B,C).  [resolve(317,a,156,b)].
+
+given #393 (T,wt=11): 490 less(A,succ(f5(B))) | notBlocked(B) | -open(succ(A),B).  [resolve(317,a,73,b)].
+
+given #394 (A,wt=19): 228 at(f5(A),f2(f5(A),A),A) | -at(f5(A),B,A) | f6(A) = B | notBlocked(A).  [resolve(145,b,71,b),flip(c)].
+
+given #395 (T,wt=11): 491 less(A,succ(B)) | -less(C,B) | less(C,succ(A)).  [resolve(317,a,56,b)].
+
+given #396 (T,wt=11): 492 less(A,succ(B)) | -less(succ(A),C) | less(B,C).  [resolve(317,a,56,a)].
+
+given #397 (T,wt=11): 497 less(A,B) | less(C,succ(A)) | less(pred(B),C).  [resolve(326,a,156,b)].
+
+given #398 (T,wt=11): 498 less(A,B) | -less(C,pred(B)) | less(C,succ(A)).  [resolve(326,a,56,b)].
+
+given #399 (A,wt=18): 229 at(A,f2(A,B),B) | -at(A,C,B) | f1(A,B) = C | node_empty(A,B).  [resolve(145,b,68,b),flip(c)].
+
+given #400 (T,wt=11): 499 less(A,B) | -less(succ(A),C) | less(pred(B),C).  [resolve(326,a,56,a)].
+
+given #401 (T,wt=11): 504 less(pred(A),succ(B)) | less(C,A) | less(B,C).  [resolve(326,b,156,b)].
+
+given #402 (T,wt=11): 505 less(pred(A),succ(f5(B))) | notBlocked(B) | -open(A,B).  [resolve(326,b,73,b)].
+
+given #403 (T,wt=11): 506 less(pred(A),succ(B)) | -less(C,B) | less(C,A).  [resolve(326,b,56,b)].
+
+given #404 (A,wt=19): 230 at(f5(A),f3(f5(A),A),A) | -at(f5(A),B,A) | f6(A) = B | notBlocked(A).  [resolve(146,b,71,b),flip(c)].
+
+given #405 (T,wt=11): 507 less(pred(A),succ(B)) | -less(A,C) | less(B,C).  [resolve(326,b,56,a)].
+
+given #406 (T,wt=11): 508 less(pred(A),succ(B)) | -less(A,B) | B = A.  [resolve(326,b,55,b)].
+
+given #407 (T,wt=11): 509 less(pred(A),succ(B)) | -less(A,B) | A = B.  [resolve(326,b,55,a)].
+
+given #408 (T,wt=11): 512 less(pred(A),B) | less(C,A) | less(pred(B),C).  [resolve(334,a,156,b)].
+
+given #409 (A,wt=18): 231 at(A,f3(A,B),B) | -at(A,C,B) | f1(A,B) = C | node_empty(A,B).  [resolve(146,b,68,b),flip(c)].
+
+given #410 (T,wt=11): 513 less(pred(A),B) | -less(C,pred(B)) | less(C,A).  [resolve(334,a,56,b)].
+
+given #411 (T,wt=11): 514 less(pred(A),B) | -less(A,C) | less(pred(B),C).  [resolve(334,a,56,a)].
+
+given #412 (T,wt=11): 521 less(pred(A),pred(B)) | less(C,A) | less(B,C).  [resolve(335,a,156,b)].
+
+given #413 (T,wt=11): 522 less(pred(A),pred(f5(B))) | notBlocked(B) | -open(A,B).  [resolve(335,a,73,b)].
+
+given #414 (A,wt=20): 232 f3(f5(A),A) != f2(f5(A),A) | -at(f5(A),B,A) | f6(A) = B | notBlocked(A).  [resolve(147,b,71,b),flip(c)].
+
+given #415 (T,wt=11): 523 less(pred(A),pred(B)) | -less(C,B) | less(C,A).  [resolve(335,a,56,b)].
+
+given #416 (T,wt=11): 524 less(pred(A),pred(B)) | -less(A,C) | less(B,C).  [resolve(335,a,56,a)].
+
+given #417 (T,wt=11): 525 less(pred(A),pred(B)) | -less(A,B) | B = A.  [resolve(335,a,55,b)].
+
+given #418 (T,wt=11): 526 less(pred(A),pred(B)) | -less(A,B) | A = B.  [resolve(335,a,55,a)].
+
+given #419 (A,wt=19): 233 f3(A,B) != f2(A,B) | -at(A,C,B) | f1(A,B) = C | node_empty(A,B).  [resolve(147,b,68,b),flip(c)].
+
+given #420 (T,wt=11): 528 less(A,B) | less(C,pred(A)) | less(pred(B),C).  [resolve(335,b,156,b)].
+
+given #421 (T,wt=11): 529 less(A,B) | -less(C,pred(B)) | less(C,pred(A)).  [resolve(335,b,56,b)].
+
+given #422 (T,wt=11): 530 less(A,B) | -less(pred(A),C) | less(pred(B),C).  [resolve(335,b,56,a)].
+
+given #423 (T,wt=11): 539 less(A,succ(succ(succ(B)))) | less(pred(pred(B)),A).  [resolve(342,a,156,b)].
+
+given #424 (A,wt=12): 273 -less(succ(succ(A)),pred(A)) | pred(A) = succ(succ(A)).  [resolve(250,a,55,b)].
+
+given #425 (T,wt=11): 540 -less(A,pred(pred(B))) | less(A,succ(succ(succ(B)))).  [resolve(342,a,56,b)].
+
+given #426 (T,wt=11): 541 -less(succ(succ(succ(A))),B) | less(pred(pred(A)),B).  [resolve(342,a,56,a)].
+
+given #427 (T,wt=11): 546 less(A,succ(succ(succ(succ(B))))) | less(pred(B),A).  [resolve(344,a,156,b)].
+
+given #428 (T,wt=11): 547 -less(A,pred(B)) | less(A,succ(succ(succ(succ(B))))).  [resolve(344,a,56,b)].
+
+given #429 (A,wt=12): 279 -less(succ(succ(succ(A))),A) | succ(succ(succ(A))) = A.  [resolve(257,a,55,b),flip(b)].
+
+given #430 (T,wt=11): 548 -less(succ(succ(succ(succ(A)))),B) | less(pred(A),B).  [resolve(344,a,56,a)].
+
+given #431 (T,wt=11): 552 less(A,succ(succ(succ(succ(succ(B)))))) | less(B,A).  [resolve(350,a,156,b)].
+
+given #432 (T,wt=11): 553 notBlocked(A) | -open(succ(succ(succ(succ(succ(f5(A)))))),A).  [resolve(350,a,73,b)].
+
+given #433 (T,wt=11): 554 -less(A,B) | less(A,succ(succ(succ(succ(succ(B)))))).  [resolve(350,a,56,b)].
+
+given #434 (A,wt=12): 285 -less(succ(A),pred(pred(A))) | pred(pred(A)) = succ(A).  [resolve(264,a,55,b)].
+
+given #435 (T,wt=11): 555 -less(succ(succ(succ(succ(succ(A))))),B) | less(A,B).  [resolve(350,a,56,a)].
+
+given #436 (T,wt=11): 560 less(A,succ(succ(B))) | less(pred(pred(pred(B))),A).  [resolve(357,a,156,b)].
+
+given #437 (T,wt=11): 561 -less(A,pred(pred(pred(B)))) | less(A,succ(succ(B))).  [resolve(357,a,56,b)].
+
+given #438 (T,wt=11): 562 -less(succ(succ(A)),B) | less(pred(pred(pred(A))),B).  [resolve(357,a,56,a)].
+
+given #439 (A,wt=12): 291 -less(A,pred(pred(pred(A)))) | pred(pred(pred(A))) = A.  [resolve(286,a,55,b)].
+
+given #440 (T,wt=11): 568 less(A,succ(B)) | less(pred(pred(pred(pred(B)))),A).  [resolve(363,a,156,b)].
+
+given #441 (T,wt=11): 569 -less(A,pred(pred(pred(pred(B))))) | less(A,succ(B)).  [resolve(363,a,56,b)].
+
+given #442 (T,wt=11): 570 -less(succ(A),B) | less(pred(pred(pred(pred(A)))),B).  [resolve(363,a,56,a)].
+
+given #443 (T,wt=11): 574 less(A,B) | less(pred(pred(pred(pred(pred(B))))),A).  [resolve(375,a,156,b)].
+
+given #444 (A,wt=12): 340 gate(A) = out1 | -path_open(succ(succ(f5(in))),A,in,out2).  [para(80(a,1),314(a,4))].
+
+given #445 (T,wt=11): 575 -less(A,pred(pred(pred(pred(pred(B)))))) | less(A,B).  [resolve(375,a,56,b)].
+
+given #446 (T,wt=11): 576 -less(A,B) | less(pred(pred(pred(pred(pred(A))))),B).  [resolve(375,a,56,a)].
+
+given #447 (T,wt=11): 582 less(pred(A),B) | less(pred(pred(B)),succ(succ(A))).  [resolve(270,a,267,a)].
+
+given #448 (T,wt=11): 583 less(pred(A),succ(succ(B))) | less(B,succ(succ(A))).  [resolve(270,a,261,a)].
+
+given #449 (A,wt=13): 341 gate(A) = out1 | -path_open(succ(succ(succ(f5(in)))),A,in,out2).  [para(80(a,1),338(a,4))].
+
+given #450 (T,wt=11): 584 less(pred(A),succ(B)) | less(pred(B),succ(succ(A))).  [resolve(270,a,253,a)].
+
+given #451 (T,wt=11): 592 less(pred(pred(pred(pred(pred(pred(A)))))),succ(succ(A))).  [resolve(271,a,375,a)].
+
+given #452 (T,wt=11): 593 less(A,succ(succ(B))) | less(pred(pred(B)),pred(A)).  [resolve(271,a,335,a)].
+
+given #453 (T,wt=11): 594 less(pred(A),succ(succ(B))) | less(pred(pred(B)),A).  [resolve(271,a,334,b)].
+
+given #454 (A,wt=14): 348 -less(succ(succ(succ(A))),pred(A)) | pred(A) = succ(succ(succ(A))).  [resolve(269,a,55,b)].
+
+given #455 (T,wt=11): 595 less(A,succ(succ(B))) | less(pred(pred(B)),succ(A)).  [resolve(271,a,326,b)].
+
+given #456 (T,wt=11): 597 less(pred(A),succ(succ(succ(succ(succ(succ(succ(A)))))))).  [resolve(272,a,350,a)].
+
+given #457 (T,wt=11): 598 less(pred(A),B) | less(pred(B),succ(succ(succ(A)))).  [resolve(272,a,326,b)].
+
+given #458 (T,wt=11): 599 less(pred(A),succ(B)) | less(B,succ(succ(succ(A)))).  [resolve(272,a,317,b)].
+
+given #459 (A,wt=14): 355 -less(succ(succ(succ(succ(A)))),A) | succ(succ(succ(succ(A)))) = A.  [resolve(274,a,55,b),flip(b)].
+
+given #460 (T,wt=11): 600 less(pred(A),pred(B)) | less(B,succ(succ(succ(A)))).  [resolve(272,a,292,b)].
+
+given #461 (T,wt=11): 602 less(A,B) | less(pred(pred(B)),succ(succ(succ(A)))).  [resolve(275,a,267,a)].
+
+given #462 (T,wt=11): 603 less(A,succ(succ(B))) | less(B,succ(succ(succ(A)))).  [resolve(275,a,261,a)].
+
+given #463 (T,wt=11): 604 less(A,succ(B)) | less(pred(B),succ(succ(succ(A)))).  [resolve(275,a,253,a)].
+
+given #464 (A,wt=14): 362 -less(succ(succ(A)),pred(pred(A))) | pred(pred(A)) = succ(succ(A)).  [resolve(281,a,55,b)].
+
+given #465 (T,wt=11): 614 less(pred(pred(pred(pred(pred(A))))),succ(succ(succ(A)))).  [resolve(277,a,375,a)].
+
+given #466 (T,wt=11): 615 less(pred(pred(pred(pred(A)))),succ(succ(succ(succ(A))))).  [resolve(277,a,363,a)].
+
+given #467 (T,wt=11): 616 less(pred(pred(pred(A))),succ(succ(succ(succ(succ(A)))))).  [resolve(277,a,357,a)].
+
+given #468 (T,wt=11): 617 less(A,succ(succ(succ(succ(succ(succ(succ(succ(A))))))))).  [resolve(277,a,350,a)].
+
+given #469 (A,wt=14): 368 -less(succ(A),pred(pred(pred(A)))) | pred(pred(pred(A))) = succ(A).  [resolve(287,a,55,b)].
+
+given #470 (F,wt=12): 4091 -open(succ(succ(succ(succ(succ(succ(succ(succ(f5(in))))))))),in).  [ur(73,a,155,a,b,617,a)].
+
+given #471 (F,wt=15): 4094 -path_open(succ(succ(succ(succ(succ(succ(succ(succ(f5(in))))))))),A,in,gate(A)).  [ur(143,a,4091,a)].
+
+given #472 (T,wt=11): 618 less(pred(pred(A)),succ(succ(succ(succ(succ(succ(A))))))).  [resolve(277,a,342,a)].
+
+given #473 (T,wt=11): 619 less(pred(A),succ(succ(succ(succ(B))))) | less(B,A).  [resolve(277,a,326,a)].
+
+given #474 (T,wt=11): 620 less(A,succ(succ(succ(succ(B))))) | less(B,succ(A)).  [resolve(277,a,317,b)].
+
+given #475 (T,wt=11): 621 less(A,succ(succ(succ(succ(B))))) | less(B,pred(A)).  [resolve(277,a,292,a)].
+
+given #476 (A,wt=12): 370 less(succ(A),pred(B)) | pred(B) = A | less(B,A).  [resolve(162,b,167,a)].
+
+given #477 (T,wt=11): 627 less(pred(pred(A)),B) | less(pred(pred(B)),succ(A)).  [resolve(282,a,267,a)].
+
+given #478 (T,wt=11): 628 less(pred(pred(A)),succ(succ(B))) | less(B,succ(A)).  [resolve(282,a,261,a)].
+
+given #479 (T,wt=11): 629 less(pred(pred(A)),succ(B)) | less(pred(B),succ(A)).  [resolve(282,a,253,a)].
+
+given #480 (T,wt=11): 640 less(pred(pred(pred(pred(pred(pred(pred(A))))))),succ(A)).  [resolve(283,a,375,a)].
+
+given #481 (A,wt=12): 371 less(succ(succ(A)),B) | succ(A) = B | less(B,A).  [resolve(162,b,59,b),flip(b)].
+
+given #482 (T,wt=11): 641 less(A,succ(B)) | less(pred(pred(pred(B))),pred(A)).  [resolve(283,a,335,a)].
+
+given #483 (T,wt=11): 642 less(pred(A),succ(B)) | less(pred(pred(pred(B))),A).  [resolve(283,a,334,b)].
+
+given #484 (T,wt=11): 643 less(A,succ(B)) | less(pred(pred(pred(B))),succ(A)).  [resolve(283,a,326,b)].
+
+given #485 (T,wt=11): 651 less(pred(pred(pred(A))),B) | less(pred(pred(B)),A).  [resolve(288,a,267,a)].
+
+given #486 (A,wt=14): 374 gate(A) = out1 | -path_open(succ(succ(succ(succ(f5(in))))),A,in,out2).  [para(80(a,1),373(a,4))].
+
+given #487 (T,wt=11): 652 less(pred(pred(pred(A))),succ(succ(B))) | less(B,A).  [resolve(288,a,261,a)].
+
+given #488 (T,wt=11): 653 less(pred(pred(pred(A))),succ(B)) | less(pred(B),A).  [resolve(288,a,253,a)].
+
+given #489 (T,wt=11): 661 less(pred(pred(pred(pred(pred(pred(pred(pred(A)))))))),A).  [resolve(289,a,375,a)].
+
+given #490 (T,wt=11): 662 less(A,B) | less(pred(pred(pred(pred(B)))),pred(A)).  [resolve(289,a,335,a)].
+
+given #491 (A,wt=14): 380 -less(A,pred(pred(pred(pred(A))))) | pred(pred(pred(pred(A)))) = A.  [resolve(333,a,55,b)].
+
+given #492 (T,wt=11): 663 less(pred(A),B) | less(pred(pred(pred(pred(B)))),A).  [resolve(289,a,334,b)].
+
+given #493 (T,wt=11): 664 less(A,B) | less(pred(pred(pred(pred(B)))),succ(A)).  [resolve(289,a,326,b)].
+
+given #494 (T,wt=11): 816 less(f5(in),f7(f5(in),f1(f5(in),in),in)).  [resolve(181,b,246,a)].
+
+given #495 (T,wt=11): 911 node_empty(A,B) | f9(A,f1(A,B),B) = in.  [resolve(183,a,92,a),flip(b)].
+
+given #496 (A,wt=13): 381 notBlocked(s) | gate(f6(s)) != out1 | switch(f5(s),s) = out1.  [resolve(174,b,98,a)].
+
+given #497 (F,wt=10): 4500 -open(f7(f5(in),f1(f5(in),in),in),in).  [resolve(816,a,73,b),unit_del(a,155)].
+
+given #498 (F,wt=13): 4508 -path_open(f7(f5(in),f1(f5(in),in),in),A,in,gate(A)).  [ur(143,a,4500,a)].
+
+given #499 (T,wt=10): 4504 f9(f5(in),f1(f5(in),in),in) = in.  [resolve(911,a,246,a)].
+
+NOTE: Back_subsumption disabled, ratio of kept to back_subsumed is 741 (0.00 of 1.65 sec).
+
+given #500 (T,wt=11): 989 less(A,B) | less(C,pred(A)) | less(B,pred(C)).  [resolve(295,b,167,b)].
+
+given #501 (T,wt=11): 996 less(A,B) | less(B,C) | less(C,pred(pred(A))).  [resolve(296,b,167,b)].
+
+given #502 (T,wt=11): 997 less(f8(f5(in),f1(f5(in),in),in),f5(in)).  [resolve(185,b,246,a)].
+
+given #503 (A,wt=13): 382 notBlocked(s) | gate(f6(s)) != out2 | switch(f5(s),s) = out2.  [resolve(174,b,96,a)].
+
+given #504 (T,wt=11): 1025 less(A,pred(B)) | B = A | less(B,pred(A)).  [resolve(300,b,167,b)].
+
+given #505 (T,wt=12): 385 less(A,B) | less(succ(succ(B)),C) | less(C,succ(A)).  [resolve(248,a,161,b)].
+
+given #506 (T,wt=12): 386 less(A,B) | less(succ(C),succ(A)) | less(succ(B),C).  [resolve(248,a,160,b)].
+
+given #507 (T,wt=12): 399 less(pred(A),B) | less(succ(B),C) | less(C,succ(A)).  [resolve(251,a,161,b)].
+
+given #508 (A,wt=14): 384 less(A,B) | less(succ(succ(B)),succ(A)) | succ(A) = succ(B).  [resolve(248,a,162,b)].
+
+given #509 (T,wt=12): 400 less(pred(A),B) | less(succ(C),succ(A)) | less(B,C).  [resolve(251,a,160,b)].
+
+given #510 (T,wt=12): 413 less(A,B) | less(succ(B),C) | less(C,succ(succ(A))).  [resolve(258,a,161,b)].
+
+given #511 (T,wt=12): 414 less(A,B) | less(succ(C),succ(succ(A))) | less(B,C).  [resolve(258,a,160,b)].
+
+given #512 (T,wt=12): 422 less(A,B) | less(C,A) | less(succ(succ(B)),succ(C)).  [resolve(164,b,248,b)].
+
+given #513 (A,wt=13): 389 less(A,B) | -less(succ(A),succ(B)) | succ(B) = succ(A).  [resolve(248,a,55,b)].
+
+given #514 (T,wt=12): 432 less(pred(pred(A)),B) | less(succ(B),C) | less(C,A).  [resolve(265,a,161,b)].
+
+given #515 (T,wt=12): 433 less(pred(pred(A)),B) | less(succ(C),A) | less(B,C).  [resolve(265,a,160,b)].
+
+given #516 (T,wt=12): 441 less(A,B) | succ(B) = A | less(succ(B),pred(A)).  [resolve(165,b,167,b)].
+
+given #517 (T,wt=12): 448 less(A,pred(B)) | less(succ(B),C) | less(C,succ(A)).  [resolve(292,a,161,b)].
+
+given #518 (A,wt=13): 390 less(A,B) | -less(succ(A),succ(B)) | succ(A) = succ(B).  [resolve(248,a,55,a)].
+
+given #519 (T,wt=12): 449 less(A,pred(B)) | less(succ(C),succ(A)) | less(B,C).  [resolve(292,a,160,b)].
+
+given #520 (T,wt=12): 454 less(A,pred(B)) | -less(succ(A),B) | succ(A) = B.  [resolve(292,a,55,b),flip(c)].
+
+given #521 (T,wt=12): 457 less(A,succ(B)) | less(succ(C),pred(A)) | less(B,C).  [resolve(292,b,160,b)].
+
+given #522 (T,wt=12): 462 less(A,succ(B)) | -less(pred(A),B) | pred(A) = B.  [resolve(292,b,55,b),flip(c)].
+
+given #523 (A,wt=14): 396 less(succ(succ(A)),succ(B)) | succ(A) = succ(B) | less(B,A).  [resolve(163,b,248,a)].
+
+given #524 (T,wt=12): 464 less(pred(A),B) | less(succ(succ(B)),C) | less(C,A).  [resolve(311,a,161,b)].
+
+given #525 (T,wt=12): 465 less(pred(A),B) | less(succ(C),A) | less(succ(B),C).  [resolve(311,a,160,b)].
+
+given #526 (T,wt=12): 468 less(pred(A),B) | -less(A,succ(B)) | succ(B) = A.  [resolve(311,a,55,b)].
+
+given #527 (T,wt=12): 470 less(succ(succ(A)),B) | less(C,A) | less(pred(B),C).  [resolve(311,b,164,b)].
+
+given #528 (A,wt=13): 440 less(A,B) | succ(B) = A | less(succ(succ(B)),succ(A)).  [resolve(165,b,248,b)].
+
+given #529 (T,wt=12): 473 less(succ(A),B) | -less(A,pred(B)) | pred(B) = A.  [resolve(311,b,55,b)].
+
+given #530 (T,wt=12): 484 node_empty(A,B) | -occupied(A,C,B) | f1(A,B) = C.  [resolve(168,b,77,b)].
+
+given #531 (T,wt=12): 488 less(A,succ(B)) | less(succ(C),succ(A)) | less(B,C).  [resolve(317,a,160,b)].
+
+given #532 (T,wt=12): 493 less(A,succ(B)) | -less(succ(A),B) | succ(A) = B.  [resolve(317,a,55,b),flip(c)].
+
+given #533 (A,wt=13): 442 less(succ(A),B) | succ(B) = succ(A) | less(succ(B),A).  [resolve(165,b,59,b)].
+
+given #534 (T,wt=12): 496 less(A,B) | less(succ(C),succ(A)) | less(pred(B),C).  [resolve(326,a,160,b)].
+
+given #535 (T,wt=12): 503 less(pred(A),succ(B)) | less(succ(C),A) | less(B,C).  [resolve(326,b,160,b)].
+
+given #536 (T,wt=12): 511 less(pred(A),B) | less(succ(C),A) | less(pred(B),C).  [resolve(334,a,160,b)].
+
+given #537 (T,wt=12): 515 less(pred(A),B) | -less(A,pred(B)) | pred(B) = A.  [resolve(334,a,55,b)].
+
+given #538 (A,wt=13): 447 less(A,pred(B)) | less(succ(B),succ(A)) | succ(A) = B.  [resolve(292,a,163,b),flip(c)].
+
+given #539 (T,wt=12): 517 less(pred(A),pred(B)) | less(succ(B),A) | B = A.  [resolve(335,a,163,b)].
+
+given #540 (T,wt=12): 518 less(pred(A),pred(B)) | less(succ(B),A) | A = B.  [resolve(335,a,162,b)].
+
+given #541 (T,wt=12): 519 less(pred(A),pred(B)) | less(succ(B),C) | less(C,A).  [resolve(335,a,161,b)].
+
+given #542 (T,wt=12): 520 less(pred(A),pred(B)) | less(succ(C),A) | less(B,C).  [resolve(335,a,160,b)].
+
+given #543 (A,wt=13): 463 less(pred(A),B) | less(succ(succ(B)),A) | succ(B) = A.  [resolve(311,a,163,b)].
+
+given #544 (T,wt=12): 527 less(A,B) | less(succ(C),pred(A)) | less(pred(B),C).  [resolve(335,b,160,b)].
+
+given #545 (T,wt=12): 538 less(succ(A),succ(succ(succ(B)))) | less(pred(pred(B)),A).  [resolve(342,a,160,b)].
+
+given #546 (T,wt=12): 545 less(succ(A),succ(succ(succ(succ(B))))) | less(pred(B),A).  [resolve(344,a,160,b)].
+
+given #547 (T,wt=12): 551 less(succ(A),succ(succ(succ(succ(succ(B)))))) | less(B,A).  [resolve(350,a,160,b)].
+
+given #548 (A,wt=14): 469 less(succ(succ(A)),B) | less(pred(B),A) | pred(B) = succ(A).  [resolve(311,b,165,b),flip(c)].
+
+given #549 (T,wt=12): 559 less(succ(A),succ(succ(B))) | less(pred(pred(pred(B))),A).  [resolve(357,a,160,b)].
+
+given #550 (T,wt=12): 567 less(succ(A),succ(B)) | less(pred(pred(pred(pred(B)))),A).  [resolve(363,a,160,b)].
+
+given #551 (T,wt=12): 573 less(succ(A),B) | less(pred(pred(pred(pred(pred(B))))),A).  [resolve(375,a,160,b)].
+
+given #552 (T,wt=12): 579 less(A,B) | less(C,A) | less(D,C) | less(B,D).  [resolve(241,a,156,b)].
+
+given #553 (A,wt=14): 474 node_empty(succ(A),out1) | occupied(A,f1(succ(A),out1),out1) | open(A,in).  [resolve(168,b,118,a)].
+
+given #554 (T,wt=12): 580 less(A,f5(B)) | less(C,A) | notBlocked(B) | -open(C,B).  [resolve(241,a,73,b)].
+
+given #555 (T,wt=12): 581 less(A,B) | less(C,A) | -less(D,B) | less(D,C).  [resolve(241,a,56,b)].
+
+given #556 (T,wt=12): 587 less(pred(A),B) | less(C,succ(succ(A))) | less(B,C).  [resolve(270,a,156,b)].
+
+given #557 (T,wt=12): 588 less(pred(A),f5(B)) | notBlocked(B) | -open(succ(succ(A)),B).  [resolve(270,a,73,b)].
+
+given #558 (A,wt=18): 475 node_empty(succ(A),out1) | occupied(A,f1(succ(A),out1),out1) | gate(f1(succ(A),out1)) = out1.  [resolve(168,b,117,a)].
+
+given #559 (T,wt=12): 589 less(pred(A),B) | -less(C,B) | less(C,succ(succ(A))).  [resolve(270,a,56,b)].
+
+given #560 (T,wt=12): 590 less(pred(A),B) | -less(succ(succ(A)),C) | less(B,C).  [resolve(270,a,56,a)].
+
+given #561 (T,wt=12): 591 less(A,succ(succ(B))) | -less(C,pred(B)) | less(C,A).  [resolve(270,b,56,b)].
+
+given #562 (T,wt=12): 596 less(pred(A),succ(succ(B))) | less(pred(B),succ(succ(A))).  [resolve(271,a,270,b)].
+
+given #563 (A,wt=18): 476 node_empty(succ(A),out1) | occupied(A,f1(succ(A),out1),out1) | at(A,f1(succ(A),out1),in).  [resolve(168,b,116,a)].
+
+given #564 (T,wt=12): 601 less(A,succ(succ(B))) | less(pred(B),succ(succ(succ(A)))).  [resolve(275,a,272,a)].
+
+given #565 (T,wt=12): 607 less(A,B) | less(C,succ(succ(succ(A)))) | less(B,C).  [resolve(275,a,156,b)].
+
+given #566 (T,wt=12): 608 less(A,f5(B)) | notBlocked(B) | -open(succ(succ(succ(A))),B).  [resolve(275,a,73,b)].
+
+given #567 (T,wt=12): 609 less(A,B) | -less(C,B) | less(C,succ(succ(succ(A)))).  [resolve(275,a,56,b)].
+
+given #568 (A,wt=14): 477 node_empty(succ(A),s) | occupied(A,f1(succ(A),s),s) | open(A,in).  [resolve(168,b,110,a)].
+
+given #569 (T,wt=12): 610 less(A,B) | -less(succ(succ(succ(A))),C) | less(B,C).  [resolve(275,a,56,a)].
+
+given #570 (T,wt=12): 611 less(A,succ(succ(succ(succ(succ(B)))))) | less(pred(B),A).  [resolve(275,b,272,a)].
+
+given #571 (T,wt=12): 612 less(A,succ(succ(succ(f5(B))))) | notBlocked(B) | -open(A,B).  [resolve(275,b,73,b)].
+
+given #572 (T,wt=12): 613 less(A,succ(succ(succ(B)))) | -less(C,B) | less(C,A).  [resolve(275,b,56,b)].
+
+given #573 (A,wt=18): 478 node_empty(succ(A),s) | occupied(A,f1(succ(A),s),s) | at(A,f1(succ(A),s),in).  [resolve(168,b,109,a)].
+
+given #574 (T,wt=12): 622 less(A,succ(succ(succ(B)))) | less(B,succ(succ(succ(A)))).  [resolve(277,a,275,b)].
+
+given #575 (T,wt=12): 623 less(A,succ(succ(succ(succ(succ(succ(B))))))) | less(B,A).  [resolve(277,a,275,a)].
+
+given #576 (T,wt=12): 624 less(pred(pred(A)),succ(succ(succ(B)))) | less(B,succ(A)).  [resolve(282,a,278,a)].
+
+given #577 (T,wt=12): 625 less(pred(pred(A)),B) | less(B,succ(succ(succ(succ(A))))).  [resolve(282,a,277,a)].
+
+given #578 (A,wt=14): 479 node_empty(succ(A),out2) | occupied(A,f1(succ(A),out2),out2) | open(A,in).  [resolve(168,b,103,a)].
+
+given #579 (T,wt=12): 626 less(pred(pred(A)),succ(succ(B))) | less(pred(B),succ(A)).  [resolve(282,a,272,a)].
+
+given #580 (T,wt=12): 632 less(pred(pred(A)),B) | less(C,succ(A)) | less(B,C).  [resolve(282,a,156,b)].
+
+given #581 (T,wt=12): 633 less(pred(pred(A)),f5(B)) | notBlocked(B) | -open(succ(A),B).  [resolve(282,a,73,b)].
+
+given #582 (T,wt=12): 634 less(pred(pred(A)),B) | -less(C,B) | less(C,succ(A)).  [resolve(282,a,56,b)].
+
+given #583 (A,wt=18): 480 node_empty(succ(A),out2) | occupied(A,f1(succ(A),out2),out2) | gate(f1(succ(A),out2)) = out2.  [resolve(168,b,102,a)].
+
+given #584 (T,wt=12): 635 less(pred(pred(A)),B) | -less(succ(A),C) | less(B,C).  [resolve(282,a,56,a)].
+
+given #585 (T,wt=12): 636 less(A,succ(B)) | -less(C,pred(pred(B))) | less(C,A).  [resolve(282,b,56,b)].
+
+given #586 (T,wt=12): 644 less(pred(pred(A)),succ(B)) | less(pred(pred(B)),succ(A)).  [resolve(283,a,282,b)].
+
+given #587 (T,wt=12): 645 less(pred(pred(pred(A))),succ(B)) | less(pred(pred(B)),A).  [resolve(288,a,284,a)].
+
+given #588 (A,wt=18): 481 node_empty(succ(A),out2) | occupied(A,f1(succ(A),out2),out2) | at(A,f1(succ(A),out2),in).  [resolve(168,b,101,a)].
+
+given #589 (T,wt=12): 646 less(pred(pred(pred(pred(pred(A))))),B) | less(B,succ(A)).  [resolve(288,a,283,a)].
+
+given #590 (T,wt=12): 647 less(pred(pred(pred(A))),succ(succ(succ(B)))) | less(B,A).  [resolve(288,a,278,a)].
+
+given #591 (T,wt=12): 648 less(pred(pred(pred(A))),B) | less(B,succ(succ(succ(A)))).  [resolve(288,a,277,a)].
+
+given #592 (T,wt=12): 649 less(pred(pred(pred(A))),succ(succ(B))) | less(pred(B),A).  [resolve(288,a,272,a)].
+
+given #593 (A,wt=14): 482 node_empty(A,s) | gate(f1(A,s)) != out1 | switch(A,s) = out1.  [resolve(168,b,98,a)].
+
+given #594 (T,wt=12): 650 less(pred(pred(pred(pred(A)))),B) | less(B,succ(succ(A))).  [resolve(288,a,271,a)].
+
+given #595 (T,wt=12): 656 less(pred(pred(pred(A))),B) | less(C,A) | less(B,C).  [resolve(288,a,156,b)].
+
+given #596 (T,wt=12): 657 less(pred(pred(pred(A))),f5(B)) | notBlocked(B) | -open(A,B).  [resolve(288,a,73,b)].
+
+given #597 (T,wt=12): 658 less(pred(pred(pred(A))),B) | -less(C,B) | less(C,A).  [resolve(288,a,56,b)].
+
+given #598 (A,wt=14): 483 node_empty(A,s) | gate(f1(A,s)) != out2 | switch(A,s) = out2.  [resolve(168,b,96,a)].
+
+given #599 (T,wt=12): 659 less(pred(pred(pred(A))),B) | -less(A,C) | less(B,C).  [resolve(288,a,56,a)].
+
+given #600 (T,wt=12): 660 less(A,B) | -less(C,pred(pred(pred(B)))) | less(C,A).  [resolve(288,b,56,b)].
+
+given #601 (T,wt=12): 665 less(pred(pred(pred(A))),B) | less(pred(pred(pred(B))),A).  [resolve(289,a,288,b)].
+
+given #602 (T,wt=12): 666 less(A,B) | less(pred(pred(pred(pred(pred(pred(B)))))),A).  [resolve(289,a,288,a)].
+
+given #603 (A,wt=13): 500 less(A,B) | -less(succ(A),pred(B)) | pred(B) = succ(A).  [resolve(326,a,55,b)].
+
+given #604 (T,wt=12): 670 less(pred(pred(A)),B) | -less(C,succ(B)) | less(C,A).  [resolve(305,a,56,b)].
+
+given #605 (T,wt=12): 671 less(pred(pred(A)),B) | -less(A,C) | less(succ(B),C).  [resolve(305,a,56,a)].
+
+given #606 (T,wt=12): 675 less(succ(A),B) | -less(C,pred(pred(B))) | less(C,A).  [resolve(305,b,56,b)].
+
+given #607 (T,wt=12): 676 less(succ(A),B) | -less(A,C) | less(pred(pred(B)),C).  [resolve(305,b,56,a)].
+
+given #608 (A,wt=13): 531 less(A,B) | -less(pred(A),pred(B)) | pred(B) = pred(A).  [resolve(335,b,55,b)].
+
+given #609 (T,wt=12): 681 less(A,B) | -less(C,succ(B)) | less(C,succ(succ(A))).  [resolve(307,a,56,b)].
+
+given #610 (T,wt=12): 682 less(A,B) | -less(succ(succ(A)),C) | less(succ(B),C).  [resolve(307,a,56,a)].
+
+given #611 (T,wt=12): 686 less(succ(A),succ(succ(f5(B)))) | notBlocked(B) | -open(A,B).  [resolve(307,b,73,b)].
+
+given #612 (T,wt=12): 687 less(succ(A),succ(succ(B))) | -less(C,B) | less(C,A).  [resolve(307,b,56,b)].
+
+given #613 (A,wt=13): 532 less(A,B) | -less(pred(A),pred(B)) | pred(A) = pred(B).  [resolve(335,b,55,a)].
+
+given #614 (T,wt=12): 688 less(succ(A),succ(succ(B))) | -less(A,C) | less(B,C).  [resolve(307,b,56,a)].
+
+given #615 (T,wt=12): 689 less(succ(A),succ(succ(B))) | -less(A,B) | B = A.  [resolve(307,b,55,b)].
+
+given #616 (T,wt=12): 690 less(succ(A),succ(succ(B))) | -less(A,B) | A = B.  [resolve(307,b,55,a)].
+
+given #617 (T,wt=12): 695 less(pred(A),B) | -less(C,succ(B)) | less(C,succ(A)).  [resolve(308,a,56,b)].
+
+given #618 (A,wt=16): 542 -less(succ(succ(succ(A))),pred(pred(A))) | pred(pred(A)) = succ(succ(succ(A))).  [resolve(342,a,55,b)].
+
+given #619 (T,wt=12): 696 less(pred(A),B) | -less(succ(A),C) | less(succ(B),C).  [resolve(308,a,56,a)].
+
+given #620 (T,wt=12): 701 less(succ(A),succ(B)) | -less(C,pred(B)) | less(C,A).  [resolve(308,b,56,b)].
+
+given #621 (T,wt=12): 702 less(succ(A),succ(B)) | -less(A,C) | less(pred(B),C).  [resolve(308,b,56,a)].
+
+given #622 (T,wt=12): 704 less(pred(A),succ(B)) | less(pred(pred(pred(pred(B)))),A).  [resolve(398,a,290,a)].
+
+given #623 (A,wt=16): 549 -less(succ(succ(succ(succ(A)))),pred(A)) | pred(A) = succ(succ(succ(succ(A)))).  [resolve(344,a,55,b)].
+
+given #624 (T,wt=12): 705 less(pred(pred(pred(pred(A)))),succ(B)) | less(pred(B),A).  [resolve(398,a,289,a)].
+
+given #625 (T,wt=12): 706 less(pred(pred(pred(A))),succ(B)) | less(pred(B),succ(A)).  [resolve(398,a,283,a)].
+
+given #626 (T,wt=12): 707 less(pred(A),succ(B)) | less(pred(B),succ(succ(succ(A)))).  [resolve(398,a,277,a)].
+
+given #627 (T,wt=12): 708 less(pred(pred(A)),succ(B)) | less(pred(B),succ(succ(A))).  [resolve(398,a,271,a)].
+
+given #628 (A,wt=16): 556 -less(succ(succ(succ(succ(succ(A))))),A) | succ(succ(succ(succ(succ(A))))) = A.  [resolve(350,a,55,b),flip(b)].
+
+given #629 (T,wt=12): 710 less(pred(A),succ(B)) | less(C,A) | less(pred(B),C).  [resolve(398,a,156,b)].
+
+given #630 (T,wt=12): 711 less(pred(A),succ(B)) | -less(C,pred(B)) | less(C,A).  [resolve(398,a,56,b)].
+
+given #631 (T,wt=12): 712 less(pred(A),succ(B)) | -less(A,C) | less(pred(B),C).  [resolve(398,a,56,a)].
+
+given #632 (T,wt=12): 714 less(pred(A),B) | less(pred(B),succ(succ(succ(succ(A))))).  [resolve(398,b,277,a)].
+
+given #633 (A,wt=16): 563 -less(succ(succ(A)),pred(pred(pred(A)))) | pred(pred(pred(A))) = succ(succ(A)).  [resolve(357,a,55,b)].
+
+given #634 (T,wt=12): 716 less(pred(A),B) | less(C,succ(A)) | less(pred(B),C).  [resolve(398,b,156,b)].
+
+given #635 (T,wt=12): 717 less(pred(A),B) | -less(C,pred(B)) | less(C,succ(A)).  [resolve(398,b,56,b)].
+
+given #636 (T,wt=12): 718 less(pred(A),B) | -less(succ(A),C) | less(pred(B),C).  [resolve(398,b,56,a)].
+
+given #637 (T,wt=12): 720 less(A,succ(B)) | less(pred(pred(pred(pred(B)))),succ(A)).  [resolve(401,a,290,a)].
+
+given #638 (A,wt=15): 565 gate(A) = out1 | -path_open(succ(succ(succ(succ(succ(f5(in)))))),A,in,out2).  [para(80(a,1),564(a,4))].
+
+given #639 (T,wt=12): 721 less(A,succ(B)) | less(pred(B),succ(succ(succ(succ(A))))).  [resolve(401,a,277,a)].
+
+given #640 (T,wt=12): 723 less(A,succ(B)) | less(C,succ(A)) | less(pred(B),C).  [resolve(401,a,156,b)].
+
+given #641 (T,wt=12): 724 less(A,succ(B)) | -less(C,pred(B)) | less(C,succ(A)).  [resolve(401,a,56,b)].
+
+given #642 (T,wt=12): 725 less(A,succ(B)) | -less(succ(A),C) | less(pred(B),C).  [resolve(401,a,56,a)].
+
+given #643 (A,wt=16): 571 -less(succ(A),pred(pred(pred(pred(A))))) | pred(pred(pred(pred(A)))) = succ(A).  [resolve(363,a,55,b)].
+
+given #644 (T,wt=12): 727 less(pred(A),succ(B)) | less(B,succ(succ(succ(succ(A))))).  [resolve(401,b,277,a)].
+
+given #645 (T,wt=12): 729 less(pred(A),succ(B)) | less(C,succ(A)) | less(B,C).  [resolve(401,b,156,b)].
+
+given #646 (T,wt=12): 730 less(pred(A),succ(f5(B))) | notBlocked(B) | -open(succ(A),B).  [resolve(401,b,73,b)].
+
+given #647 (T,wt=12): 731 less(pred(A),succ(B)) | -less(C,B) | less(C,succ(A)).  [resolve(401,b,56,b)].
+
+given #648 (A,wt=16): 577 -less(A,pred(pred(pred(pred(pred(A)))))) | pred(pred(pred(pred(pred(A))))) = A.  [resolve(375,a,55,b)].
+
+given #649 (T,wt=12): 732 less(pred(A),succ(B)) | -less(succ(A),C) | less(B,C).  [resolve(401,b,56,a)].
+
+given #650 (T,wt=12): 734 less(pred(pred(pred(pred(pred(pred(pred(pred(A)))))))),succ(A)).  [resolve(407,a,290,a)].
+
+given #651 (T,wt=12): 735 less(pred(pred(pred(pred(pred(A))))),succ(succ(succ(succ(A))))).  [resolve(407,a,277,a)].
+
+given #652 (T,wt=12): 737 -less(A,pred(pred(pred(pred(pred(B)))))) | less(A,succ(B)).  [resolve(407,a,56,b)].
+
+given #653 (A,wt=13): 578 less(A,B) | less(succ(C),A) | less(D,C) | less(B,D).  [resolve(241,a,164,b)].
+
+given #654 (T,wt=12): 738 -less(succ(A),B) | less(pred(pred(pred(pred(pred(A))))),B).  [resolve(407,a,56,a)].
+
+given #655 (T,wt=12): 740 less(pred(A),pred(B)) | less(B,succ(succ(succ(succ(A))))).  [resolve(409,a,277,a)].
+
+given #656 (T,wt=12): 744 less(pred(A),pred(B)) | less(C,succ(A)) | less(B,C).  [resolve(409,a,156,b)].
+
+given #657 (T,wt=12): 745 less(pred(A),pred(f5(B))) | notBlocked(B) | -open(succ(A),B).  [resolve(409,a,73,b)].
+
+given #658 (A,wt=13): 585 less(pred(A),B) | less(succ(B),C) | less(C,succ(succ(A))).  [resolve(270,a,161,b)].
+
+given #659 (T,wt=12): 746 less(pred(A),pred(B)) | -less(C,B) | less(C,succ(A)).  [resolve(409,a,56,b)].
+
+given #660 (T,wt=12): 747 less(pred(A),pred(B)) | -less(succ(A),C) | less(B,C).  [resolve(409,a,56,a)].
+
+given #661 (T,wt=12): 749 less(A,succ(B)) | less(pred(pred(pred(pred(B)))),pred(A)).  [resolve(409,b,290,a)].
+
+given #662 (T,wt=12): 751 less(A,succ(B)) | less(C,pred(A)) | less(pred(B),C).  [resolve(409,b,156,b)].
+
+given #663 (A,wt=13): 586 less(pred(A),B) | less(succ(C),succ(succ(A))) | less(B,C).  [resolve(270,a,160,b)].
+
+given #664 (T,wt=12): 752 less(A,succ(B)) | -less(C,pred(B)) | less(C,pred(A)).  [resolve(409,b,56,b)].
+
+given #665 (T,wt=12): 753 less(A,succ(B)) | -less(pred(A),C) | less(pred(B),C).  [resolve(409,b,56,a)].
+
+given #666 (T,wt=12): 760 notBlocked(A) | less(pred(f5(A)),f7(f5(A),f6(A),A)).  [resolve(180,a,244,a)].
+
+given #667 (T,wt=12): 764 notBlocked(A) | less(f5(A),succ(f7(f5(A),f6(A),A))).  [resolve(180,a,157,a)].
+
+given #668 (A,wt=13): 605 less(A,B) | less(succ(B),C) | less(C,succ(succ(succ(A)))).  [resolve(275,a,161,b)].
+
+given #669 (T,wt=11): 9761 notBlocked(A) | -open(succ(f7(f5(A),f6(A),A)),A).  [resolve(764,b,73,b),merge(b)].
+
+given #670 (T,wt=12): 770 less(pred(pred(pred(pred(A)))),succ(succ(succ(succ(succ(A)))))).  [resolve(410,a,290,a)].
+
+Low Water (keep): wt=18.000, iters=9319
+
+Low Water (keep): wt=17.000, iters=7277
+
+given #671 (T,wt=12): 771 less(pred(A),succ(succ(succ(succ(succ(succ(succ(succ(A))))))))).  [resolve(410,a,277,a)].
+
+given #672 (T,wt=12): 773 -less(A,pred(B)) | less(A,succ(succ(succ(succ(succ(B)))))).  [resolve(410,a,56,b)].
+
+given #673 (A,wt=13): 606 less(A,B) | less(succ(C),succ(succ(succ(A)))) | less(B,C).  [resolve(275,a,160,b)].
+
+given #674 (F,wt=9): 9820 -open(succ(f7(f5(in),f6(in),in)),in).  [ur(9761,a,155,a)].
+
+given #675 (F,wt=12): 9832 -path_open(succ(f7(f5(in),f6(in),in)),A,in,gate(A)).  [ur(143,a,9820,a)].
+
+given #676 (T,wt=12): 774 -less(succ(succ(succ(succ(succ(A))))),B) | less(pred(A),B).  [resolve(410,a,56,a)].
+
+given #677 (T,wt=12): 776 less(pred(A),succ(succ(B))) | less(pred(pred(pred(B))),A).  [resolve(412,a,290,a)].
+
+given #678 (T,wt=12): 777 less(pred(pred(pred(pred(A)))),succ(succ(B))) | less(B,A).  [resolve(412,a,289,a)].
+
+given #679 (T,wt=12): 778 less(pred(A),succ(succ(succ(B)))) | less(pred(pred(B)),A).  [resolve(412,a,284,a)].
+
+given #680 (A,wt=13): 630 less(pred(pred(A)),B) | less(succ(B),C) | less(C,succ(A)).  [resolve(282,a,161,b)].
+
+given #681 (T,wt=12): 779 less(pred(pred(pred(A))),succ(succ(B))) | less(B,succ(A)).  [resolve(412,a,283,a)].
+
+given #682 (T,wt=12): 780 less(pred(A),succ(succ(succ(succ(succ(B)))))) | less(B,A).  [resolve(412,a,278,a)].
+
+given #683 (T,wt=12): 781 less(pred(A),succ(succ(B))) | less(B,succ(succ(succ(A)))).  [resolve(412,a,277,a)].
+
+given #684 (T,wt=12): 782 less(pred(pred(A)),succ(succ(B))) | less(B,succ(succ(A))).  [resolve(412,a,271,a)].
+
+given #685 (A,wt=13): 631 less(pred(pred(A)),B) | less(succ(C),succ(A)) | less(B,C).  [resolve(282,a,160,b)].
+
+given #686 (T,wt=12): 784 less(pred(A),succ(succ(B))) | less(C,A) | less(B,C).  [resolve(412,a,156,b)].
+
+given #687 (T,wt=12): 785 less(pred(A),succ(succ(f5(B)))) | notBlocked(B) | -open(A,B).  [resolve(412,a,73,b)].
+
+given #688 (T,wt=12): 786 less(pred(A),succ(succ(B))) | -less(C,B) | less(C,A).  [resolve(412,a,56,b)].
+
+given #689 (T,wt=12): 787 less(pred(A),succ(succ(B))) | -less(A,C) | less(B,C).  [resolve(412,a,56,a)].
+
+given #690 (A,wt=13): 654 less(pred(pred(pred(A))),B) | less(succ(B),C) | less(C,A).  [resolve(288,a,161,b)].
+
+given #691 (T,wt=12): 788 less(pred(A),succ(succ(B))) | -less(A,B) | B = A.  [resolve(412,a,55,b)].
+
+given #692 (T,wt=12): 789 less(pred(A),succ(succ(B))) | -less(A,B) | A = B.  [resolve(412,a,55,a)].
+
+given #693 (T,wt=12): 791 less(A,B) | less(C,succ(succ(A))) | less(pred(B),C).  [resolve(412,b,156,b)].
+
+given #694 (T,wt=12): 792 less(A,B) | -less(C,pred(B)) | less(C,succ(succ(A))).  [resolve(412,b,56,b)].
+
+given #695 (A,wt=13): 655 less(pred(pred(pred(A))),B) | less(succ(C),A) | less(B,C).  [resolve(288,a,160,b)].
+
+given #696 (T,wt=12): 793 less(A,B) | -less(succ(succ(A)),C) | less(pred(B),C).  [resolve(412,b,56,a)].
+
+given #697 (T,wt=12): 795 less(A,succ(succ(B))) | less(pred(pred(pred(B))),succ(A)).  [resolve(415,a,290,a)].
+
+given #698 (T,wt=12): 796 less(A,succ(succ(succ(B)))) | less(pred(pred(B)),succ(A)).  [resolve(415,a,284,a)].
+
+given #699 (T,wt=12): 797 less(A,succ(succ(succ(succ(succ(B)))))) | less(B,succ(A)).  [resolve(415,a,278,a)].
+
+given #700 (A,wt=14): 667 less(pred(pred(A)),B) | less(succ(succ(B)),A) | succ(B) = A.  [resolve(305,a,163,b)].
+
+given #701 (T,wt=12): 798 less(A,succ(succ(B))) | less(B,succ(succ(succ(succ(A))))).  [resolve(415,a,277,a)].
+
+given #702 (T,wt=12): 800 less(A,succ(succ(B))) | less(C,succ(A)) | less(B,C).  [resolve(415,a,156,b)].
+
+given #703 (T,wt=12): 801 less(A,succ(succ(f5(B)))) | notBlocked(B) | -open(succ(A),B).  [resolve(415,a,73,b)].
+
+given #704 (T,wt=12): 802 less(A,succ(succ(B))) | -less(C,B) | less(C,succ(A)).  [resolve(415,a,56,b)].
+
+given #705 (A,wt=13): 668 less(pred(pred(A)),B) | less(succ(succ(B)),C) | less(C,A).  [resolve(305,a,161,b)].
+
+given #706 (T,wt=12): 803 less(A,succ(succ(B))) | -less(succ(A),C) | less(B,C).  [resolve(415,a,56,a)].
+
+given #707 (T,wt=12): 806 less(A,succ(B)) | less(C,succ(succ(A))) | less(B,C).  [resolve(415,b,156,b)].
+
+given #708 (T,wt=12): 807 less(A,succ(f5(B))) | notBlocked(B) | -open(succ(succ(A)),B).  [resolve(415,b,73,b)].
+
+given #709 (T,wt=12): 808 less(A,succ(B)) | -less(C,B) | less(C,succ(succ(A))).  [resolve(415,b,56,b)].
+
+given #710 (A,wt=13): 669 less(pred(pred(A)),B) | less(succ(C),A) | less(succ(B),C).  [resolve(305,a,160,b)].
+
+given #711 (T,wt=12): 809 less(A,succ(B)) | -less(succ(succ(A)),C) | less(B,C).  [resolve(415,b,56,a)].
+
+given #712 (T,wt=12): 811 less(pred(pred(pred(pred(pred(pred(pred(A))))))),succ(succ(A))).  [resolve(423,a,290,a)].
+
+given #713 (T,wt=12): 813 -less(A,pred(pred(pred(pred(B))))) | less(A,succ(succ(B))).  [resolve(423,a,56,b)].
+
+given #714 (T,wt=12): 814 -less(succ(succ(A)),B) | less(pred(pred(pred(pred(A)))),B).  [resolve(423,a,56,a)].
+
+given #715 (A,wt=13): 672 less(pred(pred(A)),B) | -less(A,succ(B)) | succ(B) = A.  [resolve(305,a,55,b)].
+
+given #716 (T,wt=12): 820 less(pred(pred(pred(pred(pred(pred(A)))))),succ(succ(succ(A)))).  [resolve(424,a,290,a)].
+
+given #717 (T,wt=12): 821 less(pred(pred(pred(A))),succ(succ(succ(succ(succ(succ(A))))))).  [resolve(424,a,277,a)].
+
+given #718 (T,wt=12): 823 -less(A,pred(pred(pred(B)))) | less(A,succ(succ(succ(B)))).  [resolve(424,a,56,b)].
+
+given #719 (T,wt=12): 824 -less(succ(succ(succ(A))),B) | less(pred(pred(pred(A))),B).  [resolve(424,a,56,a)].
+
+given #720 (A,wt=16): 673 less(succ(succ(A)),B) | less(pred(pred(B)),A) | pred(pred(B)) = succ(A).  [resolve(305,b,165,b),flip(c)].
+
+given #721 (T,wt=12): 826 less(pred(pred(A)),succ(succ(succ(succ(succ(succ(succ(A)))))))).  [resolve(425,a,277,a)].
+
+given #722 (T,wt=12): 828 -less(A,pred(pred(B))) | less(A,succ(succ(succ(succ(B))))).  [resolve(425,a,56,b)].
+
+given #723 (T,wt=12): 829 -less(succ(succ(succ(succ(A)))),B) | less(pred(pred(A)),B).  [resolve(425,a,56,a)].
+
+given #724 (T,wt=12): 831 less(A,succ(succ(succ(succ(succ(succ(succ(succ(succ(A)))))))))).  [resolve(426,a,278,a)].
+
+given #725 (A,wt=13): 674 less(succ(succ(A)),B) | less(C,A) | less(pred(pred(B)),C).  [resolve(305,b,164,b)].
+
+given #726 (F,wt=13): 11480 -open(succ(succ(succ(succ(succ(succ(succ(succ(succ(f5(in)))))))))),in).  [ur(73,a,155,a,b,831,a)].
+
+given #727 (F,wt=16): 11489 -path_open(succ(succ(succ(succ(succ(succ(succ(succ(succ(f5(in)))))))))),A,in,gate(A)).  [ur(143,a,11480,a)].
+
+given #728 (T,wt=12): 833 notBlocked(A) | -open(succ(succ(succ(succ(succ(succ(f5(A))))))),A).  [resolve(426,a,73,b)].
+
+given #729 (T,wt=12): 834 -less(A,B) | less(A,succ(succ(succ(succ(succ(succ(B))))))).  [resolve(426,a,56,b)].
+
+given #730 (T,wt=12): 835 -less(succ(succ(succ(succ(succ(succ(A)))))),B) | less(A,B).  [resolve(426,a,56,a)].
+
+given #731 (T,wt=12): 838 less(A,pred(B)) | less(B,succ(succ(succ(succ(succ(A)))))).  [resolve(428,a,277,a)].
+
+given #732 (A,wt=14): 677 less(succ(A),B) | -less(A,pred(pred(B))) | pred(pred(B)) = A.  [resolve(305,b,55,b)].
+
+given #733 (T,wt=12): 842 less(A,pred(B)) | less(C,succ(succ(A))) | less(B,C).  [resolve(428,a,156,b)].
+
+given #734 (T,wt=12): 843 less(A,pred(f5(B))) | notBlocked(B) | -open(succ(succ(A)),B).  [resolve(428,a,73,b)].
+
+given #735 (T,wt=12): 844 less(A,pred(B)) | -less(C,B) | less(C,succ(succ(A))).  [resolve(428,a,56,b)].
+
+given #736 (T,wt=12): 845 less(A,pred(B)) | -less(succ(succ(A)),C) | less(B,C).  [resolve(428,a,56,a)].
+
+given #737 (A,wt=16): 678 less(A,B) | less(succ(succ(B)),succ(succ(A))) | succ(succ(A)) = succ(B).  [resolve(307,a,163,b),flip(c)].
+
+given #738 (T,wt=12): 847 less(A,succ(succ(B))) | less(pred(pred(pred(B))),pred(A)).  [resolve(428,b,290,a)].
+
+given #739 (T,wt=12): 848 less(A,succ(succ(succ(B)))) | less(pred(pred(B)),pred(A)).  [resolve(428,b,284,a)].
+
+given #740 (T,wt=12): 850 less(A,succ(succ(B))) | less(C,pred(A)) | less(B,C).  [resolve(428,b,156,b)].
+
+given #741 (T,wt=12): 851 less(A,succ(succ(f5(B)))) | notBlocked(B) | -open(pred(A),B).  [resolve(428,b,73,b)].
+
+given #742 (A,wt=13): 679 less(A,B) | less(succ(succ(B)),C) | less(C,succ(succ(A))).  [resolve(307,a,161,b)].
+
+given #743 (T,wt=12): 852 less(A,succ(succ(B))) | -less(C,B) | less(C,pred(A)).  [resolve(428,b,56,b)].
+
+given #744 (T,wt=12): 853 less(A,succ(succ(B))) | -less(pred(A),C) | less(B,C).  [resolve(428,b,56,a)].
+
+given #745 (T,wt=12): 858 notBlocked(A) | -at(f8(f5(A),f6(A),A),f6(A),B).  [resolve(182,a,63,b)].
+
+given #746 (T,wt=12): 861 less(pred(A),B) | less(pred(pred(pred(pred(pred(B))))),A).  [resolve(431,a,290,a)].
+
+given #747 (A,wt=13): 680 less(A,B) | less(succ(C),succ(succ(A))) | less(succ(B),C).  [resolve(307,a,160,b)].
+
+given #748 (T,wt=12): 862 less(pred(pred(pred(pred(A)))),B) | less(pred(pred(B)),A).  [resolve(431,a,289,a)].
+
+given #749 (T,wt=12): 863 less(pred(pred(pred(A))),B) | less(pred(pred(B)),succ(A)).  [resolve(431,a,283,a)].
+
+given #750 (T,wt=12): 864 less(pred(A),B) | less(pred(pred(B)),succ(succ(succ(A)))).  [resolve(431,a,277,a)].
+
+given #751 (T,wt=12): 865 less(pred(pred(A)),B) | less(pred(pred(B)),succ(succ(A))).  [resolve(431,a,271,a)].
+
+given #752 (A,wt=15): 683 less(A,B) | -less(succ(succ(A)),succ(B)) | succ(succ(A)) = succ(B).  [resolve(307,a,55,b),flip(c)].
+
+given #753 (T,wt=12): 867 less(pred(A),B) | less(C,A) | less(pred(pred(B)),C).  [resolve(431,a,156,b)].
+
+given #754 (T,wt=12): 868 less(pred(A),B) | -less(C,pred(pred(B))) | less(C,A).  [resolve(431,a,56,b)].
+
+given #755 (T,wt=12): 869 less(pred(A),B) | -less(A,C) | less(pred(pred(B)),C).  [resolve(431,a,56,a)].
+
+given #756 (T,wt=12): 872 less(pred(pred(A)),B) | less(C,A) | less(pred(B),C).  [resolve(431,b,156,b)].
+
+given #757 (A,wt=14): 684 less(succ(succ(A)),succ(succ(B))) | less(B,A) | succ(A) = B.  [resolve(307,b,165,b)].
+
+given #758 (T,wt=12): 873 less(pred(pred(A)),B) | -less(C,pred(B)) | less(C,A).  [resolve(431,b,56,b)].
+
+given #759 (T,wt=12): 874 less(pred(pred(A)),B) | -less(A,C) | less(pred(B),C).  [resolve(431,b,56,a)].
+
+given #760 (T,wt=12): 876 less(A,B) | less(pred(pred(pred(pred(pred(B))))),succ(A)).  [resolve(434,a,290,a)].
+
+given #761 (T,wt=12): 877 less(A,B) | less(pred(pred(B)),succ(succ(succ(succ(A))))).  [resolve(434,a,277,a)].
+
+given #762 (A,wt=13): 685 less(succ(succ(A)),succ(succ(B))) | less(C,A) | less(B,C).  [resolve(307,b,164,b)].
+
+given #763 (T,wt=12): 879 less(A,B) | less(C,succ(A)) | less(pred(pred(B)),C).  [resolve(434,a,156,b)].
+
+given #764 (T,wt=12): 880 less(A,B) | -less(C,pred(pred(B))) | less(C,succ(A)).  [resolve(434,a,56,b)].
+
+given #765 (T,wt=12): 881 less(A,B) | -less(succ(A),C) | less(pred(pred(B)),C).  [resolve(434,a,56,a)].
+
+given #766 (T,wt=12): 884 less(pred(pred(A)),succ(B)) | less(C,A) | less(B,C).  [resolve(434,b,156,b)].
+
+given #767 (A,wt=15): 691 less(pred(A),B) | less(succ(succ(B)),succ(A)) | succ(B) = succ(A).  [resolve(308,a,163,b)].
+
+given #768 (T,wt=12): 885 less(pred(pred(A)),succ(f5(B))) | notBlocked(B) | -open(A,B).  [resolve(434,b,73,b)].
+
+given #769 (T,wt=12): 886 less(pred(pred(A)),succ(B)) | -less(C,B) | less(C,A).  [resolve(434,b,56,b)].
+
+given #770 (T,wt=12): 887 less(pred(pred(A)),succ(B)) | -less(A,C) | less(B,C).  [resolve(434,b,56,a)].
+
+given #771 (T,wt=12): 888 less(pred(pred(A)),succ(B)) | -less(A,B) | B = A.  [resolve(434,b,55,b)].
+
+given #772 (A,wt=15): 692 less(pred(A),B) | less(succ(succ(B)),succ(A)) | succ(A) = succ(B).  [resolve(308,a,162,b)].
+
+given #773 (T,wt=12): 889 less(pred(pred(A)),succ(B)) | -less(A,B) | A = B.  [resolve(434,b,55,a)].
+
+given #774 (T,wt=12): 890 less(pred(pred(pred(pred(pred(pred(pred(pred(pred(A))))))))),A).  [resolve(443,a,290,a)].
+
+given #775 (T,wt=12): 892 -less(A,pred(pred(pred(pred(pred(pred(B))))))) | less(A,B).  [resolve(443,a,56,b)].
+
+given #776 (T,wt=12): 893 -less(A,B) | less(pred(pred(pred(pred(pred(pred(A)))))),B).  [resolve(443,a,56,a)].
+
+given #777 (A,wt=13): 693 less(pred(A),B) | less(succ(succ(B)),C) | less(C,succ(A)).  [resolve(308,a,161,b)].
+
+given #778 (T,wt=12): 895 less(pred(pred(pred(pred(pred(A))))),pred(B)) | less(B,A).  [resolve(445,a,289,a)].
+
+given #779 (T,wt=12): 900 less(pred(pred(A)),pred(B)) | less(C,A) | less(B,C).  [resolve(445,a,156,b)].
+
+given #780 (T,wt=12): 901 less(pred(pred(A)),pred(f5(B))) | notBlocked(B) | -open(A,B).  [resolve(445,a,73,b)].
+
+given #781 (T,wt=12): 902 less(pred(pred(A)),pred(B)) | -less(C,B) | less(C,A).  [resolve(445,a,56,b)].
+
+given #782 (A,wt=13): 694 less(pred(A),B) | less(succ(C),succ(A)) | less(succ(B),C).  [resolve(308,a,160,b)].
+
+given #783 (T,wt=12): 903 less(pred(pred(A)),pred(B)) | -less(A,C) | less(B,C).  [resolve(445,a,56,a)].
+
+given #784 (T,wt=12): 904 less(pred(pred(A)),pred(B)) | -less(A,B) | B = A.  [resolve(445,a,55,b)].
+
+given #785 (T,wt=12): 905 less(pred(pred(A)),pred(B)) | -less(A,B) | A = B.  [resolve(445,a,55,a)].
+
+given #786 (T,wt=12): 907 less(A,B) | less(C,pred(A)) | less(pred(pred(B)),C).  [resolve(445,b,156,b)].
+
+given #787 (A,wt=14): 697 less(pred(A),B) | -less(succ(A),succ(B)) | succ(B) = succ(A).  [resolve(308,a,55,b)].
+
+given #788 (T,wt=12): 908 less(A,B) | -less(C,pred(pred(B))) | less(C,pred(A)).  [resolve(445,b,56,b)].
+
+given #789 (T,wt=12): 909 less(A,B) | -less(pred(A),C) | less(pred(pred(B)),C).  [resolve(445,b,56,a)].
+
+given #790 (T,wt=12): 928 notBlocked(A) | less(pred(f8(f5(A),f6(A),A)),f5(A)).  [resolve(184,a,244,a)].
+
+given #791 (T,wt=12): 932 notBlocked(A) | less(f8(f5(A),f6(A),A),succ(f5(A))).  [resolve(184,a,157,a)].
+
+given #792 (A,wt=14): 698 less(pred(A),B) | -less(succ(A),succ(B)) | succ(A) = succ(B).  [resolve(308,a,55,a)].
+
+given #793 (T,wt=12): 979 less(A,pred(B)) | less(pred(C),pred(A)) | less(B,C).  [resolve(295,b,335,b)].
+
+given #794 (T,wt=12): 980 less(A,B) | less(pred(C),pred(A)) | less(pred(B),C).  [resolve(295,b,334,b)].
+
+given #795 (T,wt=12): 981 less(A,B) | less(C,pred(A)) | less(pred(B),succ(C)).  [resolve(295,b,326,b)].
+
+given #796 (T,wt=12): 982 less(A,succ(B)) | less(pred(C),pred(A)) | less(B,C).  [resolve(295,b,326,a)].
+
+given #797 (A,wt=15): 699 less(succ(succ(A)),succ(B)) | less(pred(B),A) | pred(B) = succ(A).  [resolve(308,b,165,b),flip(c)].
+
+given #798 (T,wt=12): 983 less(A,succ(B)) | less(C,pred(A)) | less(B,succ(C)).  [resolve(295,b,317,b)].
+
+given #799 (T,wt=12): 986 less(A,pred(B)) | less(C,pred(A)) | less(B,succ(C)).  [resolve(295,b,292,b)].
+
+given #800 (T,wt=12): 993 less(A,B) | less(B,C) | less(pred(C),pred(pred(A))).  [resolve(296,b,335,a)].
+
+given #801 (T,wt=12): 995 less(A,B) | less(B,succ(C)) | less(C,pred(pred(A))).  [resolve(296,b,292,a)].
+
+given #802 (A,wt=13): 700 less(succ(succ(A)),succ(B)) | less(C,A) | less(pred(B),C).  [resolve(308,b,164,b)].
+
+given #803 (T,wt=12): 1004 less(A,pred(pred(B))) | less(pred(C),A) | less(B,C).  [resolve(299,b,335,b)].
+
+given #804 (T,wt=12): 1005 less(A,pred(B)) | less(pred(C),A) | less(succ(B),C).  [resolve(299,b,311,b)].
+
+given #805 (T,wt=12): 1009 less(A,pred(pred(B))) | less(C,A) | less(B,succ(C)).  [resolve(299,b,292,b)].
+
+given #806 (T,wt=12): 1010 less(A,pred(B)) | less(C,A) | less(succ(B),succ(C)).  [resolve(299,b,248,b)].
+
+given #807 (A,wt=13): 703 less(succ(A),succ(B)) | -less(A,pred(B)) | pred(B) = A.  [resolve(308,b,55,b)].
+
+given #808 (T,wt=12): 1022 less(A,pred(B)) | B = A | less(succ(B),succ(A)).  [resolve(300,b,248,b)].
+
+given #809 (T,wt=12): 1026 less(A,pred(pred(B))) | pred(B) = A | less(B,A).  [resolve(300,b,167,a)].
+
+given #810 (T,wt=12): 1030 less(A,pred(B)) | A = B | less(succ(B),succ(A)).  [resolve(301,b,248,b)].
+
+given #811 (T,wt=12): 1031 switch(succ(f5(A)),A) = switch(f5(A),A) | notBlocked(A).  [resolve(186,a,173,b)].
+
+given #812 (A,wt=13): 709 less(pred(A),succ(B)) | less(succ(C),A) | less(pred(B),C).  [resolve(398,a,160,b)].
+
+given #813 (T,wt=12): 1140 less(A,B) | less(pred(C),succ(A)) | less(pred(B),C).  [resolve(320,b,334,b)].
+
+given #814 (T,wt=12): 1141 less(A,B) | less(C,succ(A)) | less(pred(B),succ(C)).  [resolve(320,b,326,b)].
+
+given #815 (T,wt=12): 1144 less(A,succ(B)) | less(C,succ(A)) | less(B,succ(C)).  [resolve(320,b,317,b)].
+
+given #816 (T,wt=12): 1214 less(pred(A),B) | less(pred(C),A) | less(pred(B),C).  [resolve(329,b,334,b)].
+
+given #817 (A,wt=13): 713 less(pred(A),succ(B)) | -less(A,pred(B)) | pred(B) = A.  [resolve(398,a,55,b)].
+
+given #818 (T,wt=12): 2587 path_open(f5(in),f6(in),in,out2) | gate(f6(in)) = out1.  [resolve(223,b,80,a)].
+
+given #819 (T,wt=5): 13437 gate(f6(in)) = out1.  [resolve(2587,a,315,b),merge(b)].
+
+============================== PROOF =================================
+
+% Proof 1 at 15.18 (+ 0.15) seconds.
+% Length of proof is 33.
+% Level of proof is 10.
+% Maximum clause weight is 13.000.
+% Given clauses 819.
+
+3 (all X all Y (less(X,Y) | less(Y,X))) # label(totality) # label(axiom) # label(non_clause).  [assumption].
+13 (all N (notBlocked(N) <-> (all T1 all Train (at(T1,Train,N) & -open(T1,N) -> (exists T2 (less(T1,T2) & open(T2,N))))))) # label(not_blocked) # label(axiom) # label(non_clause).  [assumption].
+22 (all N (is_input(N) -> N = in)) # label(is_input) # label(axiom) # label(non_clause).  [assumption].
+23 (all Train (gate(Train) = out2 | gate(Train) = out1)) # label(gate_restr) # label(axiom) # label(non_clause).  [assumption].
+43 (all T all Train all OtherTrain (path_open(T,Train,in,out2) <-> at(T,Train,in) & gate(Train) = out2 & (-occupied(T,OtherTrain,in) | Train = OtherTrain) & (-occupied(T,OtherTrain,s) | Train = OtherTrain) & (-occupied(T,OtherTrain,out2) | Train = OtherTrain))) # label(path_open_from_in_to_out2) # label(axiom) # label(non_clause).  [assumption].
+44 (all T all Train all OtherTrain (path_open(T,Train,in,out1) <-> at(T,Train,in) & gate(Train) = out1 & (-occupied(T,OtherTrain,in) | Train = OtherTrain) & (-occupied(T,OtherTrain,s) | Train = OtherTrain) & (-occupied(T,OtherTrain,out1) | Train = OtherTrain))) # label(path_open_from_in_to_out1) # label(axiom) # label(non_clause).  [assumption].
+45 (all T (open(T,in) <-> (exists Train path_open(T,Train,in,gate(Train))))) # label(open_in) # label(axiom) # label(non_clause).  [assumption].
+46 (all N (is_input(N) -> notBlocked(N))) # label(block_critical) # label(conjecture) # label(non_clause) # label(goal).  [goal].
+53 -is_input(A) | in = A # label(is_input) # label(axiom).  [clausify(22)].
+54 is_input(c1) # label(block_critical) # label(conjecture).  [deny(46)].
+57 less(A,B) | less(B,A) # label(totality) # label(axiom).  [clausify(3)].
+71 notBlocked(A) | at(f5(A),f6(A),A) # label(not_blocked) # label(axiom).  [clausify(13)].
+73 notBlocked(A) | -less(f5(A),B) | -open(B,A) # label(not_blocked) # label(axiom).  [clausify(13)].
+80 gate(A) = out2 | gate(A) = out1 # label(gate_restr) # label(axiom).  [clausify(23)].
+132 path_open(A,B,in,out2) | -at(A,B,in) | gate(B) != out2 | C != B # label(path_open_from_in_to_out2) # label(axiom).  [clausify(43)].
+133 path_open(A,B,in,out2) | -at(A,B,in) | gate(B) != out2.  [copy(132),xx(d)].
+140 path_open(A,B,in,out1) | -at(A,B,in) | gate(B) != out1 | C != B # label(path_open_from_in_to_out1) # label(axiom).  [clausify(44)].
+141 path_open(A,B,in,out1) | -at(A,B,in) | gate(B) != out1.  [copy(140),xx(d)].
+143 open(A,in) | -path_open(A,B,in,gate(B)) # label(open_in) # label(axiom).  [clausify(45)].
+144 -notBlocked(c1) # label(block_critical) # label(conjecture).  [deny(46)].
+151 in = c1.  [resolve(54,a,53,a)].
+152 c1 = in.  [copy(151),flip(a)].
+153 less(A,A).  [factor(57,a,b)].
+155 -notBlocked(in).  [back_rewrite(144),rewrite([152(1)])].
+223 path_open(f5(in),f6(in),in,out2) | gate(f6(in)) != out2.  [resolve(133,b,71,b),unit_del(c,155)].
+225 path_open(f5(in),f6(in),in,out1) | gate(f6(in)) != out1.  [resolve(141,b,71,b),unit_del(c,155)].
+237 -open(f5(in),in).  [ur(73,a,155,a,b,153,a)].
+256 -path_open(f5(in),A,in,gate(A)).  [ur(143,a,237,a)].
+315 gate(A) = out1 | -path_open(f5(in),A,in,out2).  [para(80(a,1),256(a,4))].
+2587 path_open(f5(in),f6(in),in,out2) | gate(f6(in)) = out1.  [resolve(223,b,80,a)].
+13437 gate(f6(in)) = out1.  [resolve(2587,a,315,b),merge(b)].
+13438 path_open(f5(in),f6(in),in,out1).  [back_rewrite(225),rewrite([13437(10)]),xx(b)].
+13440 $F.  [para(13437(a,1),256(a,4)),unit_del(a,13438)].
+
+============================== end of proof ==========================
+
+============================== STATISTICS ============================
+
+Given=819. Generated=157792. Kept=13376. proofs=1.
+Usable=816. Sos=12548. Demods=7. Limbo=1, Disabled=117. Hints=0.
+Kept_by_rule=0, Deleted_by_rule=0.
+Forward_subsumed=132872. Back_subsumed=6.
+Sos_limit_deleted=11543. Sos_displaced=0. Sos_removed=0.
+New_demodulators=7 (0 lex), Back_demodulated=5. Back_unit_deleted=0.
+Demod_attempts=1618461. Demod_rewrites=51031.
+Res_instance_prunes=0. Para_instance_prunes=0. Basic_paramod_prunes=0.
+Nonunit_fsub_feature_tests=28986673. Nonunit_bsub_feature_tests=67703.
+Megabytes=20.61.
+User_CPU=15.18, System_CPU=0.15, Wall_clock=16.
+
+============================== end of statistics =====================
+
+============================== end of search =========================
+
+THEOREM PROVED
+
+Exiting with 1 proof.
+
+Process 15643 exit (max_proofs) Mon Jun 26 22:43:32 2017

@@ -10,11 +10,23 @@ import java.util.HashMap;
 public class Main {
 
     public static void main(String[] args) {
-        String fileName = "nadr2";
-
+        String fileName = "nadr1";
 	    TrainStation trainStation = parseInput(fileName + ".txt");
-        Axioms axioms = new Axioms(trainStation, fileName + ".p");
+        Axioms axiomsSwitch = new Axioms(trainStation, fileName + "_switch.p", "switch");
+        Axioms axiomsBlock = new Axioms(trainStation, fileName + "_block.p", "block");
+        Axioms axiomsCollision = new Axioms(trainStation, fileName + "_collision.p", "collision");
 
+        fileName = "nadr2";
+        trainStation = parseInput(fileName + ".txt");
+        axiomsSwitch = new Axioms(trainStation, fileName + "_switch.p", "switch");
+        axiomsBlock = new Axioms(trainStation, fileName + "_block.p", "block");
+        axiomsCollision = new Axioms(trainStation, fileName + "_collision.p", "collision");
+
+        fileName = "nadr_small";
+        trainStation = parseInput(fileName + ".txt");
+        axiomsSwitch = new Axioms(trainStation, fileName + "_switch.p", "switch");
+        axiomsBlock = new Axioms(trainStation, fileName + "_block.p", "block");
+        axiomsCollision = new Axioms(trainStation, fileName + "_collision.p", "collision");
     }
 
     private static TrainStation parseInput(String fileName){
