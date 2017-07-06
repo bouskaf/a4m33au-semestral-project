@@ -14,7 +14,7 @@ public class Axioms {
 
     private TrainStation trainStation;
     private String name;
-    private String preFolder = "./output/";
+    private String preFolder = "output/";
 
     public Axioms(TrainStation trainStation, String name, String critical) {
         this.trainStation = trainStation;
@@ -54,7 +54,7 @@ public class Axioms {
         printMoveRestriction();
         printOccupiedRestriction();
         printPathRestriction();
-        printOpenNodeRestriction();
+      //  printOpenNodeRestriction();
 
         switch (type) {
             case 1:
@@ -126,7 +126,7 @@ public class Axioms {
 
         // Node is safe
         sb.append("% In time T there is no collision in node N.\n");
-        sb.append("fof(node_safe, axiom, (![T, N]: ((safe(T, N)) <=> ( ![Train, OtherTrain]: ((at(T, Train, N) & at(T, OtherTrain, N)) => (Train = OtherTrain)))))).\n\n");
+        sb.append("fof(node_safe, axiom, (![T, N]: ((safe(T, N)) <=> (![Train, OtherTrain]: ((at(T, Train, N) & at(T, OtherTrain, N)) => (Train = OtherTrain)))))).\n\n");
 
         // Node is not blocked
         sb.append("% In enter node N there never stays blocked train.\n");
@@ -244,7 +244,7 @@ public class Axioms {
     private void printSwitchesRestriction() {
         StringBuilder sb = new StringBuilder();
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-        sb.append("%------------------------------------ Switches values restriction --------------------------------------%\n");
+        sb.append("%------------------------------------ Switches restriction --------------------------------------%\n");
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
         for (Node node : trainStation.getMap().values()) {
@@ -260,10 +260,6 @@ public class Axioms {
             }
         }
         sb.append("\n\n");
-
-        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-        sb.append("%----------------------------------------- Switches settings -------------------------------------------%\n");
-        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
         for (Stack<Node> path : trainStation.getPaths()) {
             Node end = path.get(path.size() - 1);
@@ -382,6 +378,14 @@ public class Axioms {
             i++;
         }
         sb.append(")))).\n\n");
+
+        sb.append("% Open node restriction.\n");
+        for (Node node : trainStation.getIns()) {
+            sb.append("fof(open_" + node.getName() + ", axiom, (![T]: (open(T, " + node.getName() + ") <=> (?[Train]: (path_free(T, Train, ");
+            sb.append(node.getName() + ", gate(Train))");
+            sb.append("))))).\n");
+        }
+        sb.append("\n");
 
         sb.append("% No node can be occupied for given path.\n");
         for (Stack<Node> path : trainStation.getPaths()) {
