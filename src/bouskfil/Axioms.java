@@ -52,9 +52,7 @@ public class Axioms {
         printDomainRestriction();
         printSwitchesRestriction();
         printMoveRestriction();
-        printOccupiedRestriction();
         printPathRestriction();
-      //  printOpenNodeRestriction();
 
         switch (type) {
             case 1:
@@ -116,10 +114,6 @@ public class Axioms {
         sb.append("% Two different trains do not enter the same node in the same time.\n");
         sb.append("fof(enter_uniq, axiom, (![T, Train, OtherTrain, N]: ((enter(T, Train, N) & enter(T, OtherTrain, N)) => (Train = OtherTrain)))).\n\n");
 
-        // If train is in node the node is occupied
-        sb.append("% If train is in node the node is occupied.\n");
-        sb.append("fof(occupied, axiom, (![T, Train, N]: (at(T, Train, N) => occupied(T, Train, N)))).\n\n");
-
         // If node is empty there is no train in it
         sb.append("% If node is empty there is no train in it.\n");
         sb.append("fof(node_empty, axiom, (![T, N]: (empty(T, N) <=> (![Train]: (~at(T, Train, N)))))).\n\n");
@@ -142,11 +136,11 @@ public class Axioms {
 
         // Node cannot be occupied by two different trains
         sb.append("% Node cannot be occupied by two different trains.\n");
-        sb.append("fof(occupied_only_once, axiom, (![T, Train, OtherTrain, N]: ((occupied(T, Train, N) & occupied(T, OtherTrain, N)) => (Train = OtherTrain)))).\n\n");
+        sb.append("fof(occupied_only_once, axiom, (![T, Train, OtherTrain, N]: ((at(T, Train, N) & at(T, OtherTrain, N)) => (Train = OtherTrain)))).\n\n");
 
         // If there is train on switch node output direction has to remain the same
         sb.append("% If there is train on switch node output direction has to remain same.\n");
-        sb.append("fof(switch_restr, axiom, (![T, N1, N2]: ((~empty(T, N1) & (switch(T, N1) = N2)) => (switch(succ(T), N1) = N2)))).\n\n");
+        sb.append("fof(switch_restr, axiom, (![T, N1, N2]: (((switch(succ(T), N1) = N2) & ~empty(T, N1)) => (switch(T, N1) = N2)))).\n\n");
 
         // Train moves as soon as it is possible
         sb.append("% Train moves as soon as it is possible.\n");
@@ -154,7 +148,7 @@ public class Axioms {
 
         // Train enters the station as soon as it is possible
         sb.append("% Train enters the station as soon as it is possible.\n");
-        sb.append("fof(train_enters, axiom, (?[Train, N1]: ![T1, T2, N2] : (~at(T1, Train, N2) & ~at(T2, Train, N2) & ~enter(T2, Train, N2) & empty(T2, N1) & input(N1) & less(T1, T2)) => enter(succ(T2), Train, N1))).\n\n\n");
+        sb.append("fof(train_enters, axiom, (?[Train, N1]: ![T1, T2, N2]: enter(succ(T2), Train, N1) => (~at(T1, Train, N2) & ~at(T2, Train, N2) & ~enter(T2, Train, N2) & empty(T2, N1) & input(N1) & less(T1, T2)))).\n\n\n");
 
         writeToFile(sb.toString(), true);
     }
@@ -162,7 +156,7 @@ public class Axioms {
     private void printDomainRestriction() {
         StringBuilder sb = new StringBuilder();
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-        sb.append("%---------------------------------- Domain restriction of symbols -------------------------------------%\n");
+        sb.append("%---------------------------------- Domain restriction of symbols --------------------------------------%\n");
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
         // Restriction for at values
@@ -215,17 +209,6 @@ public class Axioms {
         }
         sb.append(")).\n\n");
 
-        // Restriction for occupied values
-        sb.append("% Restriction for occupied values.\n");
-        sb.append("fof(occupied_values, axiom, (![T, Train, N]: (occupied(T, Train, N) => (");
-        size = trainStation.getMap().keySet().size();
-        i = 0;
-        for (String key : trainStation.getMap().keySet()) {
-            i++;
-            sb.append("(N = " + key + ")" + ((i == size) ? ")" : " | "));
-        }
-        sb.append("))).\n\n");
-
         // Train can enter only in input nodes
         sb.append("% Train can enter only in input nodes.\n");
         sb.append("fof(enter_values, axiom, (![T, Train, N]: (enter(T, Train, N) => (");
@@ -244,7 +227,7 @@ public class Axioms {
     private void printSwitchesRestriction() {
         StringBuilder sb = new StringBuilder();
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-        sb.append("%------------------------------------ Switches restriction --------------------------------------%\n");
+        sb.append("%--------------------------------------- Switches restriction ------------------------------------------%\n");
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
         for (Node node : trainStation.getMap().values()) {
@@ -265,7 +248,7 @@ public class Axioms {
             Node end = path.get(path.size() - 1);
             for (int i = 0; i < path.size() - 1; i++) {
                 sb.append("fof(switch_" + path.get(i).getName() + "_with_gate_" + end.getName() + ", axiom, ");
-                sb.append("(![T, Train]: ((occupied(T, Train, " + path.get(i).getName() + ") & (gate(Train) = " + end.getName() + "))");
+                sb.append("(![T, Train]: ((at(T, Train, " + path.get(i).getName() + ") & (gate(Train) = " + end.getName() + "))");
                 sb.append(" => ");
                 sb.append("(switch(T, " + path.get(i).getName() + ") = " + path.get(i + 1).getName() + ")))).\n");
             }
@@ -317,46 +300,6 @@ public class Axioms {
 
     }
 
-    private void printOccupiedRestriction() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-        sb.append("%---------------------------------------- Occupied restriction -----------------------------------------%\n");
-        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
-
-        sb.append("% The node is occupied at the next moment when it was already occupied and the train did not go away or if it was not occupied and the train would come to it.\n");
-        for (Node node : trainStation.getMap().values()){
-            if (!node.isIn()){
-                sb.append("fof(" + node.getName() + "_occupied, axiom, (![T, Train]: (occupied(succ(T), Train, " + node.getName() + ") <=> ");
-                sb.append("((occupied(T, Train, " + node.getName() + ") & ~(at(T, Train, " + node.getName() + ") & ~at(succ(T), Train, " + node.getName() + ")))");
-
-                ArrayList<String> list = new ArrayList<>();
-                for (Stack<Node> path : trainStation.getPaths()) {
-                    if (path.contains(node)) {
-                        Node start = path.get(0);
-                        Node end = path.get(path.size() - 1);
-                        String string = "(at(T, Train, " + start.getName() + ") & (gate(Train) = " + end.getName() + ") & open(T, " + start.getName() + "))";
-                        if (!list.contains(string)) {
-                            list.add(string);
-                        }
-                    }
-                }
-
-                sb.append(" | ");
-                int i = 0;
-                for (String string : list) {
-                    sb.append(string + (i == list.size() - 1 ? "" : " | "));
-                    i++;
-                }
-
-                sb.append(")))).\n");
-            }
-        }
-        sb.append("\n\n");
-
-        writeToFile(sb.toString(), true);
-
-    }
-
     private void printPathRestriction() {
         StringBuilder sb = new StringBuilder();
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
@@ -398,7 +341,7 @@ public class Axioms {
 
             list = new ArrayList<>();
             for (Node node : path) {
-                String string = "(~occupied(T, OtherTrain, " + node.getName() + ") | (Train = OtherTrain))";
+                String string = "(~at(T, OtherTrain, " + node.getName() + ") | (Train = OtherTrain))";
                 list.add(string);
             }
             i = 0;
@@ -409,22 +352,6 @@ public class Axioms {
             sb.append(")))).\n");
         }
         sb.append("\n");
-
-        writeToFile(sb.toString(), true);
-    }
-
-    private void printOpenNodeRestriction() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-        sb.append("%---------------------------------------- Open node restriction ----------------------------------------%\n");
-        sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
-
-        for (Node node : trainStation.getIns()) {
-            sb.append("fof(open_" + node.getName() + ", axiom, (![T]: (open(T, " + node.getName() + ") <=> (?[Train]: (path_free(T, Train, ");
-            sb.append(node.getName() + ", gate(Train))");
-            sb.append("))))).\n");
-        }
-        sb.append("\n\n");
 
         writeToFile(sb.toString(), true);
     }
