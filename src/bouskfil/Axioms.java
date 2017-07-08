@@ -97,7 +97,7 @@ public class Axioms {
     private void printPhysicalRestriction() {
         StringBuilder sb = new StringBuilder();
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-        sb.append("%---------------------------- Physical restriction of the train station -------------------------------%\n");
+        sb.append("%---------------------------- Physical restriction of the train station --------------------------------%\n");
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
         // Train is at certain time only in one place

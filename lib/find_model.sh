@@ -1,0 +1,1 @@
+cat ../output/nadr1_switch.p | ./tptp_to_ladr | ./mace4 > ../output/nadr1_switch.model

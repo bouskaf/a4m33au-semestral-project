@@ -10,7 +10,7 @@ fof(pred, axiom, (![X]: ((pred(succ(X)) = X) & (succ(pred(X)) = X)))).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%---------------------------- Physical restriction of the train station -------------------------------%
+%---------------------------- Physical restriction of the train station --------------------------------%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Train is at certain time only in one place.
@@ -67,7 +67,7 @@ fof(at_restr, axiom, (![T, Train, N]: (at(T, Train, N) => ((N = out2) | (N = out
 fof(open_restr, axiom, (![T, N]: (open(T, N) => input(N)))).
 
 % Only true for input nodes.
-fof(input, axiom, (![N]: (input(N) <=> ((N = in2) | (N = in1))))).
+fof(input, axiom, (![N]: (input(N) => ((N = in2) | (N = in1))))).
 
 % Train can exit only in exit nodes.
 fof(gate_restr, axiom, (![Train]: ((gate(Train) = out2) | (gate(Train) = out1)))).
