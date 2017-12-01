@@ -1,0 +1,1 @@
+cat ../output/nadr2_axioms.p | ./tptp_to_ladr | ./mace4 -p 1 > ../output/models/nadr2.model

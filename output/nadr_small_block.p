@@ -17,7 +17,7 @@ fof(pred, axiom, (![X]: ((pred(succ(X)) = X) & (succ(pred(X)) = X)))).
 fof(at_uniq, axiom, (![T, Train, N1, N2]: ((at(T, Train, N1) & at(T, Train, N2)) => (N1 = N2)))).
 
 % Train already in station can not enter it again.
-fof(at_nondup, axiom, (![T, Train, N, OtherN]: (at(T, Train, N) => ~enter(T, Train, OtherN)))).
+fof(at_nondup, axiom, (![T, Train, OtherTrain, N]: (at(T, Train, N) => ~enter(T, OtherTrain, N)))).
 
 % Train never enters occupied node.
 fof(input_nocol, axiom, (![T, Train, OtherTrain, N]: (at(T, Train, N) => ~enter(T, OtherTrain, N)))).
@@ -26,7 +26,7 @@ fof(input_nocol, axiom, (![T, Train, OtherTrain, N]: (at(T, Train, N) => ~enter(
 fof(enter_uniq, axiom, (![T, Train, OtherTrain, N]: ((enter(T, Train, N) & enter(T, OtherTrain, N)) => (Train = OtherTrain)))).
 
 % If node is empty there is no train in it.
-fof(node_empty, axiom, (![T, N]: (empty(T, N) <=> (![Train]: (~at(T, Train, N)))))).
+fof(node_empty, axiom, (![T, N]: (node_empty(T, N) <=> (![Train]: (~at(T, Train, N)))))).
 
 % In time T there is no collision in node N.
 fof(node_safe, axiom, (![T, N]: ((safe(T, N)) <=> (![Train, OtherTrain]: ((at(T, Train, N) & at(T, OtherTrain, N)) => (Train = OtherTrain)))))).
@@ -35,22 +35,13 @@ fof(node_safe, axiom, (![T, N]: ((safe(T, N)) <=> (![Train, OtherTrain]: ((at(T,
 fof(not_blocked, axiom, (![N]: (notBlocked(N) <=> (![T1, Train]: (((at(T1, Train, N) & ~open(T1, N))) => (?[T2]: (less(T1, T2) & open(T2, N)))))))).
 
 % Train will leave a node in future.
-fof(train_will_move, axiom, (![T1, Train, N]: (at(T1, Train, N) => (?[T2]: (move(T2, Train) & less(T1, T2)))))).
+fof(train_will_move, axiom, (![T1, Train, N]: (at(T1, Train, N) => (?[T2]: (will_move(T2, Train) & less(T1, T2)))))).
 
 % Train entered the station in past.
 fof(train_entered, axiom, (![T1, Train, N1]: ((at(T1, Train, N1)) => (?[T2, N2] : (enter(T2, Train, N2) & less(T2, T1)))))).
 
-% Node cannot be occupied by two different trains.
-fof(occupied_only_once, axiom, (![T, Train, OtherTrain, N]: ((at(T, Train, N) & at(T, OtherTrain, N)) => (Train = OtherTrain)))).
-
-% If there is train on switch node output direction has to remain same.
-fof(switch_restr, axiom, (![T, N1, N2]: (((switch(succ(T), N1) = N2) & ~empty(T, N1)) => (switch(T, N1) = N2)))).
-
 % Train moves as soon as it is possible.
-fof(train_moves, axiom, (![T, Train]: (move(T, Train)))).
-
-% Train enters the station as soon as it is possible.
-fof(train_enters, axiom, (?[Train, N1]: ![T1, T2, N2]: enter(succ(T2), Train, N1) => (~at(T1, Train, N2) & ~at(T2, Train, N2) & ~enter(T2, Train, N2) & empty(T2, N1) & input(N1) & less(T1, T2)))).
+fof(train_moves, axiom, (![T, Train]: (will_move(T, Train)))).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -64,7 +55,7 @@ fof(at_restr, axiom, (![T, Train, N]: (at(T, Train, N) => ((N = out2) | (N = s) 
 fof(open_restr, axiom, (![T, N]: (open(T, N) => input(N)))).
 
 % Only true for input nodes.
-fof(input, axiom, (![N]: (input(N) => ((N = in))))).
+fof(input_restr, axiom, (![N]: (input(N) => ((N = in))))).
 
 % Train can exit only in exit nodes.
 fof(gate_restr, axiom, (![Train]: ((gate(Train) = out2) | (gate(Train) = out1)))).
@@ -81,13 +72,10 @@ fof(enter_values, axiom, (![T, Train, N]: (enter(T, Train, N) => ((N = in))))).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fof(switch_s_values, axiom, (![T]: ((switch(T, s) = out1) | (switch(T, s) = out2)))).
-fof(switch_in_values, axiom, (![T]: ((switch(T, in) = s)))).
 
 
-fof(switch_in_with_gate_out2, axiom, (![T, Train]: ((at(T, Train, in) & (gate(Train) = out2)) => (switch(T, in) = s)))).
 fof(switch_s_with_gate_out2, axiom, (![T, Train]: ((at(T, Train, s) & (gate(Train) = out2)) => (switch(T, s) = out2)))).
 
-fof(switch_in_with_gate_out1, axiom, (![T, Train]: ((at(T, Train, in) & (gate(Train) = out1)) => (switch(T, in) = s)))).
 fof(switch_s_with_gate_out1, axiom, (![T, Train]: ((at(T, Train, s) & (gate(Train) = out1)) => (switch(T, s) = out1)))).
 
 
@@ -95,17 +83,12 @@ fof(switch_s_with_gate_out1, axiom, (![T, Train]: ((at(T, Train, s) & (gate(Trai
 %------------------------------------------ Move restriction -------------------------------------------%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Moves in inputs.
-fof(enter_or_wait_at_in, axiom, (![T, Train]: (enter(T, Train, in) | (at(T, Train, in) & ~open(T, in))) => at(succ(T), Train, in))).
-fof(move_or_stay_from_in_to_s, axiom, (![T, Train]: (((at(T, Train, in) & open(T, in) & move(T, Train)) => (at(succ(T), Train, s))) | ((at(T, Train, in) & open(T, in) & ~move(T, Train)) => at(succ(T), Train, in))))).
+% Possible moves for switch nodes.
+fof(moves_s, axiom, (![T, Train]: (at(succ(T), Train, s) <=> (at(T, Train, in))))).
 
-% Moves in outputs.
-fof(leave_or_stay_at_out2, axiom, (![T, Train]: (((at(T, Train, out2) & ~move(T, Train)) => at(succ(T), Train, out2)) | ((at(T, Train, out2) & move(T, Train)) => (![N]: (~at(succ(T), Train, N))))))).
-fof(leave_or_stay_at_out1, axiom, (![T, Train]: (((at(T, Train, out1) & ~move(T, Train)) => at(succ(T), Train, out1)) | ((at(T, Train, out1) & move(T, Train)) => (![N]: (~at(succ(T), Train, N))))))).
-
-% Moves in switches.
-fof(move_or_stay_from_s_to_out1, axiom, (![T, Train]: (((at(T, Train, s) & (switch(T, s) = out1) & ~move(T, Train)) => (at(succ(T), Train, s))) | ((at(T, Train, s) & (switch(T, s) = out1) & move(T, Train)) => (at(succ(T), Train, out1)))))).
-fof(move_or_stay_from_s_to_out2, axiom, (![T, Train]: (((at(T, Train, s) & (switch(T, s) = out2) & ~move(T, Train)) => (at(succ(T), Train, s))) | ((at(T, Train, s) & (switch(T, s) = out2) & move(T, Train)) => (at(succ(T), Train, out2)))))).
+% Possible moves for gate nodes.
+fof(moves_out2, axiom, (![T, Train]: (at(succ(T), Train, out2) <=> (at(T, Train, s))))).
+fof(moves_out1, axiom, (![T, Train]: (at(succ(T), Train, out1) <=> (at(T, Train, s))))).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -119,8 +102,8 @@ fof(path_from_to_values, axiom, (![T, Train, N1, N2]: (path_free(T, Train, N1, N
 fof(open_in, axiom, (![T]: (open(T, in) <=> (?[Train]: (path_free(T, Train, in, gate(Train))))))).
 
 % No node can be occupied for given path.
-fof(path_free_from_in_to_out2, axiom, (![T, Train, OtherTrain]: (path_free(T, Train, in, out2) <=> (at(T, Train, in) & (gate(Train) = out2) & (~at(T, OtherTrain, in) | (Train = OtherTrain)) & (~at(T, OtherTrain, s) | (Train = OtherTrain)) & (~at(T, OtherTrain, out2) | (Train = OtherTrain)))))).
-fof(path_free_from_in_to_out1, axiom, (![T, Train, OtherTrain]: (path_free(T, Train, in, out1) <=> (at(T, Train, in) & (gate(Train) = out1) & (~at(T, OtherTrain, in) | (Train = OtherTrain)) & (~at(T, OtherTrain, s) | (Train = OtherTrain)) & (~at(T, OtherTrain, out1) | (Train = OtherTrain)))))).
+fof(path_free_from_in_to_out2, axiom, (![T, Train]: (path_free(T, Train, in, out2) <=> (at(T, Train, in) & (gate(Train) = out2) & node_empty(T, in) & node_empty(T, s) & node_empty(T, out2))))).
+fof(path_free_from_in_to_out1, axiom, (![T, Train]: (path_free(T, Train, in, out1) <=> (at(T, Train, in) & (gate(Train) = out1) & node_empty(T, in) & node_empty(T, s) & node_empty(T, out1))))).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %------------------------------ The input node remains permanently closed ------------------------------%

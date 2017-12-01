@@ -1,0 +1,465 @@
+============================== Mace4 =================================
+Mace4 (64) version 2009-11A, November 2009.
+Process 24411 was started by mac on Filip-MacBook-Pro.local,
+Thu Aug 31 20:37:39 2017
+The command was "./mace4".
+============================== end of head ===========================
+
+============================== INPUT =================================
+set(prolog_style_variables).
+
+formulas(assumptions).
+(all X all Y (less(X,Y) & less(Y,X) -> X = Y)) # label(antisymmetry) # label(axiom).
+(all X all Y all Z (less(X,Y) & less(Y,Z) -> less(X,Z))) # label(transitivity) # label(axiom).
+(all X all Y (less(X,Y) | less(Y,X))) # label(totality) # label(axiom).
+(all X (less(X,succ(X)) & (all Y (less(Y,X) | less(succ(X),Y))))) # label(succ) # label(axiom).
+(all X (pred(succ(X)) = X & succ(pred(X)) = X)) # label(pred) # label(axiom).
+(all T all Train all N1 all N2 (at(T,Train,N1) & at(T,Train,N2) -> N1 = N2)) # label(at_uniq) # label(axiom).
+(all T all Train all OtherTrain all N (at(T,Train,N) -> -enter(T,OtherTrain,N))) # label(at_nondup) # label(axiom).
+(all T all Train all OtherTrain all N (at(T,Train,N) -> -enter(T,OtherTrain,N))) # label(input_nocol) # label(axiom).
+(all T all Train all OtherTrain all N (enter(T,Train,N) & enter(T,OtherTrain,N) -> Train = OtherTrain)) # label(enter_uniq) # label(axiom).
+(all T all N (node_empty(T,N) <-> (all Train -at(T,Train,N)))) # label(node_empty) # label(axiom).
+(all T all N (safe(T,N) <-> (all Train all OtherTrain (at(T,Train,N) & at(T,OtherTrain,N) -> Train = OtherTrain)))) # label(node_safe) # label(axiom).
+(all N (notBlocked(N) <-> (all T1 all Train (at(T1,Train,N) & -open(T1,N) -> (exists T2 (less(T1,T2) & open(T2,N))))))) # label(not_blocked) # label(axiom).
+(all T1 all Train all N (at(T1,Train,N) -> (exists T2 (will_move(T2,Train) & less(T1,T2))))) # label(train_will_move) # label(axiom).
+(all T1 all Train all N1 (at(T1,Train,N1) -> (exists T2 exists N2 (enter(T2,Train,N2) & less(T2,T1))))) # label(train_entered) # label(axiom).
+(all T all Train will_move(T,Train)) # label(train_moves) # label(axiom).
+(all T all Train all N (at(T,Train,N) -> N = out2 | N = s | N = in | N = out1)) # label(at_restr) # label(axiom).
+(all T all N (open(T,N) -> input(N))) # label(open_restr) # label(axiom).
+(all N (input(N) -> N = in)) # label(input_restr) # label(axiom).
+(all Train (gate(Train) = out2 | gate(Train) = out1)) # label(gate_restr) # label(axiom).
+out2 != s & out2 != in & out2 != out1 & s != in & s != out1 & in != out1 # label(distinct_nodes) # label(axiom).
+(all T all Train all N (enter(T,Train,N) -> N = in)) # label(enter_values) # label(axiom).
+(all T (switch(T,s) = out1 | switch(T,s) = out2)) # label(switch_s_values) # label(axiom).
+(all T all Train (at(T,Train,s) & gate(Train) = out2 -> switch(T,s) = out2)) # label(switch_s_with_gate_out2) # label(axiom).
+(all T all Train (at(T,Train,s) & gate(Train) = out1 -> switch(T,s) = out1)) # label(switch_s_with_gate_out1) # label(axiom).
+(all T all Train (at(succ(T),Train,s) <-> at(T,Train,in))) # label(moves_s) # label(axiom).
+(all T all Train (at(succ(T),Train,out2) <-> at(T,Train,s))) # label(moves_out2) # label(axiom).
+(all T all Train (at(succ(T),Train,out1) <-> at(T,Train,s))) # label(moves_out1) # label(axiom).
+(all T all Train all N1 all N2 (path_free(T,Train,N1,N2) -> N1 = in & N2 = out2 | N1 = in & N2 = out1)) # label(path_from_to_values) # label(axiom).
+(all T (open(T,in) <-> (exists Train path_free(T,Train,in,gate(Train))))) # label(open_in) # label(axiom).
+(all T all Train (path_free(T,Train,in,out2) <-> at(T,Train,in) & gate(Train) = out2 & node_empty(T,in) & node_empty(T,s) & node_empty(T,out2))) # label(path_free_from_in_to_out2) # label(axiom).
+(all T all Train (path_free(T,Train,in,out1) <-> at(T,Train,in) & gate(Train) = out1 & node_empty(T,in) & node_empty(T,s) & node_empty(T,out1))) # label(path_free_from_in_to_out1) # label(axiom).
+end_of_list.
+
+formulas(goals).
+end_of_list.
+
+============================== end of input ==========================
+
+============================== PROCESS NON-CLAUSAL FORMULAS ==========
+
+% Formulas that are not ordinary clauses:
+1 (all X all Y (less(X,Y) & less(Y,X) -> X = Y)) # label(antisymmetry) # label(axiom) # label(non_clause).  [assumption].
+2 (all X all Y all Z (less(X,Y) & less(Y,Z) -> less(X,Z))) # label(transitivity) # label(axiom) # label(non_clause).  [assumption].
+3 (all X all Y (less(X,Y) | less(Y,X))) # label(totality) # label(axiom) # label(non_clause).  [assumption].
+4 (all X (less(X,succ(X)) & (all Y (less(Y,X) | less(succ(X),Y))))) # label(succ) # label(axiom) # label(non_clause).  [assumption].
+5 (all X (pred(succ(X)) = X & succ(pred(X)) = X)) # label(pred) # label(axiom) # label(non_clause).  [assumption].
+6 (all T all Train all N1 all N2 (at(T,Train,N1) & at(T,Train,N2) -> N1 = N2)) # label(at_uniq) # label(axiom) # label(non_clause).  [assumption].
+7 (all T all Train all OtherTrain all N (at(T,Train,N) -> -enter(T,OtherTrain,N))) # label(at_nondup) # label(axiom) # label(non_clause).  [assumption].
+8 (all T all Train all OtherTrain all N (at(T,Train,N) -> -enter(T,OtherTrain,N))) # label(input_nocol) # label(axiom) # label(non_clause).  [assumption].
+9 (all T all Train all OtherTrain all N (enter(T,Train,N) & enter(T,OtherTrain,N) -> Train = OtherTrain)) # label(enter_uniq) # label(axiom) # label(non_clause).  [assumption].
+10 (all T all N (node_empty(T,N) <-> (all Train -at(T,Train,N)))) # label(node_empty) # label(axiom) # label(non_clause).  [assumption].
+11 (all T all N (safe(T,N) <-> (all Train all OtherTrain (at(T,Train,N) & at(T,OtherTrain,N) -> Train = OtherTrain)))) # label(node_safe) # label(axiom) # label(non_clause).  [assumption].
+12 (all N (notBlocked(N) <-> (all T1 all Train (at(T1,Train,N) & -open(T1,N) -> (exists T2 (less(T1,T2) & open(T2,N))))))) # label(not_blocked) # label(axiom) # label(non_clause).  [assumption].
+13 (all T1 all Train all N (at(T1,Train,N) -> (exists T2 (will_move(T2,Train) & less(T1,T2))))) # label(train_will_move) # label(axiom) # label(non_clause).  [assumption].
+14 (all T1 all Train all N1 (at(T1,Train,N1) -> (exists T2 exists N2 (enter(T2,Train,N2) & less(T2,T1))))) # label(train_entered) # label(axiom) # label(non_clause).  [assumption].
+15 (all T all Train will_move(T,Train)) # label(train_moves) # label(axiom) # label(non_clause).  [assumption].
+16 (all T all Train all N (at(T,Train,N) -> N = out2 | N = s | N = in | N = out1)) # label(at_restr) # label(axiom) # label(non_clause).  [assumption].
+17 (all T all N (open(T,N) -> input(N))) # label(open_restr) # label(axiom) # label(non_clause).  [assumption].
+18 (all N (input(N) -> N = in)) # label(input_restr) # label(axiom) # label(non_clause).  [assumption].
+19 (all Train (gate(Train) = out2 | gate(Train) = out1)) # label(gate_restr) # label(axiom) # label(non_clause).  [assumption].
+20 out2 != s & out2 != in & out2 != out1 & s != in & s != out1 & in != out1 # label(distinct_nodes) # label(axiom) # label(non_clause).  [assumption].
+21 (all T all Train all N (enter(T,Train,N) -> N = in)) # label(enter_values) # label(axiom) # label(non_clause).  [assumption].
+22 (all T (switch(T,s) = out1 | switch(T,s) = out2)) # label(switch_s_values) # label(axiom) # label(non_clause).  [assumption].
+23 (all T all Train (at(T,Train,s) & gate(Train) = out2 -> switch(T,s) = out2)) # label(switch_s_with_gate_out2) # label(axiom) # label(non_clause).  [assumption].
+24 (all T all Train (at(T,Train,s) & gate(Train) = out1 -> switch(T,s) = out1)) # label(switch_s_with_gate_out1) # label(axiom) # label(non_clause).  [assumption].
+25 (all T all Train (at(succ(T),Train,s) <-> at(T,Train,in))) # label(moves_s) # label(axiom) # label(non_clause).  [assumption].
+26 (all T all Train (at(succ(T),Train,out2) <-> at(T,Train,s))) # label(moves_out2) # label(axiom) # label(non_clause).  [assumption].
+27 (all T all Train (at(succ(T),Train,out1) <-> at(T,Train,s))) # label(moves_out1) # label(axiom) # label(non_clause).  [assumption].
+28 (all T all Train all N1 all N2 (path_free(T,Train,N1,N2) -> N1 = in & N2 = out2 | N1 = in & N2 = out1)) # label(path_from_to_values) # label(axiom) # label(non_clause).  [assumption].
+29 (all T (open(T,in) <-> (exists Train path_free(T,Train,in,gate(Train))))) # label(open_in) # label(axiom) # label(non_clause).  [assumption].
+30 (all T all Train (path_free(T,Train,in,out2) <-> at(T,Train,in) & gate(Train) = out2 & node_empty(T,in) & node_empty(T,s) & node_empty(T,out2))) # label(path_free_from_in_to_out2) # label(axiom) # label(non_clause).  [assumption].
+31 (all T all Train (path_free(T,Train,in,out1) <-> at(T,Train,in) & gate(Train) = out1 & node_empty(T,in) & node_empty(T,s) & node_empty(T,out1))) # label(path_free_from_in_to_out1) # label(axiom) # label(non_clause).  [assumption].
+
+============================== end of process non-clausal formulas ===
+
+============================== CLAUSES FOR SEARCH ====================
+
+formulas(mace4_clauses).
+-less(A,B) | -less(B,A) | B = A # label(antisymmetry) # label(axiom).
+-less(A,B) | -less(B,C) | less(A,C) # label(transitivity) # label(axiom).
+less(A,B) | less(B,A) # label(totality) # label(axiom).
+less(A,succ(A)) # label(succ) # label(axiom).
+less(A,B) | less(succ(B),A) # label(succ) # label(axiom).
+pred(succ(A)) = A # label(pred) # label(axiom).
+succ(pred(A)) = A # label(pred) # label(axiom).
+-at(A,B,C) | -at(A,B,D) | D = C # label(at_uniq) # label(axiom).
+-at(A,B,C) | -enter(A,D,C) # label(at_nondup) # label(axiom).
+-at(A,B,C) | -enter(A,D,C) # label(input_nocol) # label(axiom).
+-enter(A,B,C) | -enter(A,D,C) | D = B # label(enter_uniq) # label(axiom).
+-node_empty(A,B) | -at(A,C,B) # label(node_empty) # label(axiom).
+node_empty(A,B) | at(A,f1(A,B),B) # label(node_empty) # label(axiom).
+-safe(A,B) | -at(A,C,B) | -at(A,D,B) | D = C # label(node_safe) # label(axiom).
+safe(A,B) | at(A,f2(A,B),B) # label(node_safe) # label(axiom).
+safe(A,B) | at(A,f3(A,B),B) # label(node_safe) # label(axiom).
+safe(A,B) | f3(A,B) != f2(A,B) # label(node_safe) # label(axiom).
+-notBlocked(A) | -at(B,C,A) | open(B,A) | less(B,f4(A,B,C)) # label(not_blocked) # label(axiom).
+-notBlocked(A) | -at(B,C,A) | open(B,A) | open(f4(A,B,C),A) # label(not_blocked) # label(axiom).
+notBlocked(A) | at(f5(A),f6(A),A) # label(not_blocked) # label(axiom).
+notBlocked(A) | -open(f5(A),A) # label(not_blocked) # label(axiom).
+notBlocked(A) | -less(f5(A),B) | -open(B,A) # label(not_blocked) # label(axiom).
+-at(A,B,C) | will_move(f7(A,B,C),B) # label(train_will_move) # label(axiom).
+-at(A,B,C) | less(A,f7(A,B,C)) # label(train_will_move) # label(axiom).
+-at(A,B,C) | enter(f8(A,B,C),B,f9(A,B,C)) # label(train_entered) # label(axiom).
+-at(A,B,C) | less(f8(A,B,C),A) # label(train_entered) # label(axiom).
+will_move(A,B) # label(train_moves) # label(axiom).
+-at(A,B,C) | out2 = C | s = C | in = C | out1 = C # label(at_restr) # label(axiom).
+-open(A,B) | input(B) # label(open_restr) # label(axiom).
+-input(A) | in = A # label(input_restr) # label(axiom).
+gate(A) = out2 | gate(A) = out1 # label(gate_restr) # label(axiom).
+s != out2 # label(distinct_nodes) # label(axiom).
+in != out2 # label(distinct_nodes) # label(axiom).
+out1 != out2 # label(distinct_nodes) # label(axiom).
+in != s # label(distinct_nodes) # label(axiom).
+out1 != s # label(distinct_nodes) # label(axiom).
+out1 != in # label(distinct_nodes) # label(axiom).
+-enter(A,B,C) | in = C # label(enter_values) # label(axiom).
+switch(A,s) = out1 | switch(A,s) = out2 # label(switch_s_values) # label(axiom).
+-at(A,B,s) | gate(B) != out2 | switch(A,s) = out2 # label(switch_s_with_gate_out2) # label(axiom).
+-at(A,B,s) | gate(B) != out1 | switch(A,s) = out1 # label(switch_s_with_gate_out1) # label(axiom).
+-at(succ(A),B,s) | at(A,B,in) # label(moves_s) # label(axiom).
+at(succ(A),B,s) | -at(A,B,in) # label(moves_s) # label(axiom).
+-at(succ(A),B,out2) | at(A,B,s) # label(moves_out2) # label(axiom).
+at(succ(A),B,out2) | -at(A,B,s) # label(moves_out2) # label(axiom).
+-at(succ(A),B,out1) | at(A,B,s) # label(moves_out1) # label(axiom).
+at(succ(A),B,out1) | -at(A,B,s) # label(moves_out1) # label(axiom).
+-path_free(A,B,C,D) | in = C # label(path_from_to_values) # label(axiom).
+-path_free(A,B,C,D) | out2 = D | out1 = D # label(path_from_to_values) # label(axiom).
+-open(A,in) | path_free(A,f10(A),in,gate(f10(A))) # label(open_in) # label(axiom).
+open(A,in) | -path_free(A,B,in,gate(B)) # label(open_in) # label(axiom).
+-path_free(A,B,in,out2) | at(A,B,in) # label(path_free_from_in_to_out2) # label(axiom).
+-path_free(A,B,in,out2) | gate(B) = out2 # label(path_free_from_in_to_out2) # label(axiom).
+-path_free(A,B,in,out2) | node_empty(A,in) # label(path_free_from_in_to_out2) # label(axiom).
+-path_free(A,B,in,out2) | node_empty(A,s) # label(path_free_from_in_to_out2) # label(axiom).
+-path_free(A,B,in,out2) | node_empty(A,out2) # label(path_free_from_in_to_out2) # label(axiom).
+path_free(A,B,in,out2) | -at(A,B,in) | gate(B) != out2 | -node_empty(A,in) | -node_empty(A,s) | -node_empty(A,out2) # label(path_free_from_in_to_out2) # label(axiom).
+-path_free(A,B,in,out1) | at(A,B,in) # label(path_free_from_in_to_out1) # label(axiom).
+-path_free(A,B,in,out1) | gate(B) = out1 # label(path_free_from_in_to_out1) # label(axiom).
+-path_free(A,B,in,out1) | node_empty(A,in) # label(path_free_from_in_to_out1) # label(axiom).
+-path_free(A,B,in,out1) | node_empty(A,s) # label(path_free_from_in_to_out1) # label(axiom).
+-path_free(A,B,in,out1) | node_empty(A,out1) # label(path_free_from_in_to_out1) # label(axiom).
+path_free(A,B,in,out1) | -at(A,B,in) | gate(B) != out1 | -node_empty(A,in) | -node_empty(A,s) | -node_empty(A,out1) # label(path_free_from_in_to_out1) # label(axiom).
+end_of_list.
+
+============================== end of clauses for search =============
+
+% There are no natural numbers in the input.
+
+============================== DOMAIN SIZE 2 =========================
+
+============================== STATISTICS ============================
+
+For domain size 2.
+
+Current CPU time: 0.00 seconds (total CPU time: 0.01 seconds).
+Ground clauses: seen=340, kept=312.
+Selections=1, assignments=1, propagations=24, current_models=0.
+Rewrite_terms=212, rewrite_bools=79, indexes=78.
+Rules_from_neg_clauses=3, cross_offs=3.
+
+============================== end of statistics =====================
+
+============================== DOMAIN SIZE 3 =========================
+
+============================== STATISTICS ============================
+
+For domain size 3.
+
+Current CPU time: 0.00 seconds (total CPU time: 0.01 seconds).
+Ground clauses: seen=1149, kept=1062.
+Selections=2, assignments=3, propagations=103, current_models=0.
+Rewrite_terms=1030, rewrite_bools=591, indexes=318.
+Rules_from_neg_clauses=2, cross_offs=5.
+
+============================== end of statistics =====================
+
+============================== DOMAIN SIZE 4 =========================
+
+============================== MODEL =================================
+
+interpretation( 4, [number=1, seconds=0], [
+
+        function(in, [ 0 ]),
+
+        function(out1, [ 1 ]),
+
+        function(out2, [ 2 ]),
+
+        function(s, [ 3 ]),
+
+        function(gate(_), [ 1, 1, 1, 1 ]),
+
+        function(pred(_), [ 0, 1, 2, 3 ]),
+
+        function(succ(_), [ 0, 1, 2, 3 ]),
+
+        function(f5(_), [ 0, 0, 0, 0 ]),
+
+        function(f6(_), [ 0, 0, 0, 0 ]),
+
+        function(f10(_), [ 0, 0, 0, 0 ]),
+
+        function(switch(_,_), [
+			   0, 0, 0, 1,
+			   0, 0, 0, 1,
+			   0, 0, 0, 1,
+			   0, 0, 0, 1 ]),
+
+        function(f1(_,_), [
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0 ]),
+
+        function(f2(_,_), [
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0 ]),
+
+        function(f3(_,_), [
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0 ]),
+
+        function(f4(_,_,_), [
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0 ]),
+
+        function(f7(_,_,_), [
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0 ]),
+
+        function(f8(_,_,_), [
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0 ]),
+
+        function(f9(_,_,_), [
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0 ]),
+
+        relation(input(_), [ 0, 0, 0, 0 ]),
+
+        relation(notBlocked(_), [ 1, 1, 1, 1 ]),
+
+        relation(less(_,_), [
+			   1, 0, 0, 0,
+			   1, 1, 0, 0,
+			   1, 1, 1, 0,
+			   1, 1, 1, 1 ]),
+
+        relation(node_empty(_,_), [
+			   1, 1, 1, 1,
+			   1, 1, 1, 1,
+			   1, 1, 1, 1,
+			   1, 1, 1, 1 ]),
+
+        relation(open(_,_), [
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0 ]),
+
+        relation(safe(_,_), [
+			   1, 1, 1, 1,
+			   1, 1, 1, 1,
+			   1, 1, 1, 1,
+			   1, 1, 1, 1 ]),
+
+        relation(will_move(_,_), [
+			   1, 1, 1, 1,
+			   1, 1, 1, 1,
+			   1, 1, 1, 1,
+			   1, 1, 1, 1 ]),
+
+        relation(at(_,_,_), [
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0 ]),
+
+        relation(enter(_,_,_), [
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0 ]),
+
+        relation(path_free(_,_,_,_), [
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0,
+			   0, 0, 0, 0 ])
+]).
+
+============================== end of model ==========================
+
+============================== STATISTICS ============================
+
+For domain size 4.
+
+Current CPU time: 0.00 seconds (total CPU time: 0.01 seconds).
+Ground clauses: seen=2970, kept=2770.
+Selections=366, assignments=381, propagations=564, current_models=1.
+Rewrite_terms=4630, rewrite_bools=4086, indexes=1302.
+Rules_from_neg_clauses=2, cross_offs=17.
+
+============================== end of statistics =====================
+
+User_CPU=0.01, System_CPU=0.00, Wall_clock=0.
+
+Exiting with 1 model.
+
+Process 24411 exit (max_models) Thu Aug 31 20:37:39 2017
+The process finished Thu Aug 31 20:37:39 2017

@@ -11,22 +11,28 @@ public class Main {
 
     public static void main(String[] args) {
         String fileName = "nadr1";
-	    TrainStation trainStation = parseInput("./input/" + fileName + ".txt");
+
+
+        TrainStation trainStation = parseInput("./input/" + fileName + ".txt");
+        Axioms axioms = new Axioms(trainStation, fileName + "_axioms.p", "nothing");
         Axioms axiomsSwitch = new Axioms(trainStation, fileName + "_switch.p", "switch");
         Axioms axiomsBlock = new Axioms(trainStation, fileName + "_block.p", "block");
         Axioms axiomsCollision = new Axioms(trainStation, fileName + "_collision.p", "collision");
 
         fileName = "nadr2";
         trainStation = parseInput("./input/" + fileName + ".txt");
+        axioms = new Axioms(trainStation, fileName + "_axioms.p", "nothing");
         axiomsSwitch = new Axioms(trainStation, fileName + "_switch.p", "switch");
         axiomsBlock = new Axioms(trainStation, fileName + "_block.p", "block");
         axiomsCollision = new Axioms(trainStation, fileName + "_collision.p", "collision");
 
         fileName = "nadr_small";
         trainStation = parseInput("./input/" + fileName + ".txt");
+        axioms = new Axioms(trainStation, fileName + "_axioms.p", "nothing");
         axiomsSwitch = new Axioms(trainStation, fileName + "_switch.p", "switch");
         axiomsBlock = new Axioms(trainStation, fileName + "_block.p", "block");
         axiomsCollision = new Axioms(trainStation, fileName + "_collision.p", "collision");
+
     }
 
     private static TrainStation parseInput(String fileName){

@@ -1,0 +1,1 @@
+cat ../output/nadr_small_axioms.p | ./tptp_to_ladr | ./mace4 > ../output/models/nadr_small.model

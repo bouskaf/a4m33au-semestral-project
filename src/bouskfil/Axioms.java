@@ -20,6 +20,10 @@ public class Axioms {
         this.trainStation = trainStation;
         this.name = name;
 
+        if (critical.equals("nothing")) {
+            createAxioms(0);
+        }
+
         if (critical.equals("switch")){
             createAxioms(1);
         }
@@ -55,6 +59,8 @@ public class Axioms {
         printPathRestriction();
 
         switch (type) {
+            case 0:
+                break;
             case 1:
                 printSwitchCritical();
                 break;
@@ -102,9 +108,10 @@ public class Axioms {
         sb.append("% Train is at certain time only in one place.\n");
         sb.append("fof(at_uniq, axiom, (![T, Train, N1, N2]: ((at(T, Train, N1) & at(T, Train, N2)) => (N1 = N2)))).\n\n");
 
-        // Train already in station can not enter it again
+        // *** Train already in station can not enter it again
         sb.append("% Train already in station can not enter it again.\n");
-        sb.append("fof(at_nondup, axiom, (![T, Train, N, OtherN]: (at(T, Train, N) => ~enter(T, Train, OtherN)))).\n\n");
+        //sb.append("fof(at_nondup, axiom, (![T, Train, N, OtherN]: (at(T, Train, N) => ~enter(T, Train, OtherN)))).\n\n");
+        sb.append("fof(at_nondup, axiom, (![T, Train, OtherTrain, N]: (at(T, Train, N) => ~enter(T, OtherTrain, N)))).\n\n");
 
         // Train never enters occupied node
         sb.append("% Train never enters occupied node.\n");
@@ -116,7 +123,7 @@ public class Axioms {
 
         // If node is empty there is no train in it
         sb.append("% If node is empty there is no train in it.\n");
-        sb.append("fof(node_empty, axiom, (![T, N]: (empty(T, N) <=> (![Train]: (~at(T, Train, N)))))).\n\n");
+        sb.append("fof(node_empty, axiom, (![T, N]: (node_empty(T, N) <=> (![Train]: (~at(T, Train, N)))))).\n\n");
 
         // Node is safe
         sb.append("% In time T there is no collision in node N.\n");
@@ -128,27 +135,20 @@ public class Axioms {
 
         // Train will leave a node in future
         sb.append("% Train will leave a node in future.\n");
-        sb.append("fof(train_will_move, axiom, (![T1, Train, N]: (at(T1, Train, N) => (?[T2]: (move(T2, Train) & less(T1, T2)))))).\n\n");
+        sb.append("fof(train_will_move, axiom, (![T1, Train, N]: (at(T1, Train, N) => (?[T2]: (will_move(T2, Train) & less(T1, T2)))))).\n\n");
 
         // Train entered the station in past
         sb.append("% Train entered the station in past.\n");
         sb.append("fof(train_entered, axiom, (![T1, Train, N1]: ((at(T1, Train, N1)) => (?[T2, N2] : (enter(T2, Train, N2) & less(T2, T1)))))).\n\n");
 
-        // Node cannot be occupied by two different trains
-        sb.append("% Node cannot be occupied by two different trains.\n");
-        sb.append("fof(occupied_only_once, axiom, (![T, Train, OtherTrain, N]: ((at(T, Train, N) & at(T, OtherTrain, N)) => (Train = OtherTrain)))).\n\n");
-
         // If there is train on switch node output direction has to remain the same
-        sb.append("% If there is train on switch node output direction has to remain same.\n");
-        sb.append("fof(switch_restr, axiom, (![T, N1, N2]: (((switch(succ(T), N1) = N2) & ~empty(T, N1)) => (switch(T, N1) = N2)))).\n\n");
+        //sb.append("% If there is train on switch node output direction has to remain same.\n");
+        //sb.append("fof(switch_restr, axiom, (![T, N1, N2]: (((switch(T, N1) = N2) & ~node_empty(T, N1)) => (switch(succ(T), N1) = N2)))).\n\n");
 
         // Train moves as soon as it is possible
         sb.append("% Train moves as soon as it is possible.\n");
-        sb.append("fof(train_moves, axiom, (![T, Train]: (move(T, Train)))).\n\n");
+        sb.append("fof(train_moves, axiom, (![T, Train]: (will_move(T, Train)))).\n\n\n");
 
-        // Train enters the station as soon as it is possible
-        sb.append("% Train enters the station as soon as it is possible.\n");
-        sb.append("fof(train_enters, axiom, (?[Train, N1]: ![T1, T2, N2]: enter(succ(T2), Train, N1) => (~at(T1, Train, N2) & ~at(T2, Train, N2) & ~enter(T2, Train, N2) & empty(T2, N1) & input(N1) & less(T1, T2)))).\n\n\n");
 
         writeToFile(sb.toString(), true);
     }
@@ -176,7 +176,7 @@ public class Axioms {
 
         // Only true for input nodes
         sb.append("% Only true for input nodes.\n");
-        sb.append("fof(input, axiom, (![N]: (input(N) => (");
+        sb.append("fof(input_restr, axiom, (![N]: (input(N) => (");
         size = trainStation.getIns().size();
         i = 0;
         for (Node node : trainStation.getIns()) {
@@ -231,7 +231,7 @@ public class Axioms {
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
         for (Node node : trainStation.getMap().values()) {
-            if (!node.isOut()) {
+            if (!node.isOut() && !node.isIn()) {
                 sb.append("fof(switch_" + node.getName() + "_values, axiom, (![T]: (");
                 int i = 0;
 
@@ -247,10 +247,13 @@ public class Axioms {
         for (Stack<Node> path : trainStation.getPaths()) {
             Node end = path.get(path.size() - 1);
             for (int i = 0; i < path.size() - 1; i++) {
-                sb.append("fof(switch_" + path.get(i).getName() + "_with_gate_" + end.getName() + ", axiom, ");
-                sb.append("(![T, Train]: ((at(T, Train, " + path.get(i).getName() + ") & (gate(Train) = " + end.getName() + "))");
-                sb.append(" => ");
-                sb.append("(switch(T, " + path.get(i).getName() + ") = " + path.get(i + 1).getName() + ")))).\n");
+                if (!path.get(i).isIn() ) {
+                    sb.append("fof(switch_" + path.get(i).getName() + "_with_gate_" + end.getName() + ", axiom, ");
+                    sb.append("(![T, Train]: ((at(T, Train, " + path.get(i).getName() + ") & (gate(Train) = " + end.getName() + "))");
+                    sb.append(" => ");
+                    sb.append("(switch(T, " + path.get(i).getName() + ") = " + path.get(i + 1).getName() + ")))).\n");
+                }
+
             }
             sb.append("\n");
         }
@@ -265,35 +268,37 @@ public class Axioms {
         sb.append("%------------------------------------------ Move restriction -------------------------------------------%\n");
         sb.append("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
-        sb.append("% Moves in inputs.\n");
-        for (Node node : trainStation.getIns()) {
-            sb.append("fof(enter_or_wait_at_" + node.getName() + ", axiom, (![T, Train]: (enter(T, Train, " + node.getName() + ") | (at(T, Train, ");
-            sb.append(node.getName() + ") & ~open(T, " + node.getName() + "))) => at(succ(T), Train, " + node.getName() + "))).\n");
 
-            for (Node next : node.getNext()) {
-                sb.append("fof(move_or_stay_from_" + node.getName() + "_to_" + next.getName() + ", axiom, (![T, Train]: (((at(T, Train, ");
-                sb.append(node.getName() + ") & open(T, " + node.getName() + ") & move(T, Train)) => (at(succ(T), Train, " + next.getName() + ")))");
-                sb.append(" | ((at(T, Train, " + node.getName() + ") & open(T, " + node.getName() + ") & ~move(T, Train)) => at(succ(T), Train, " + node.getName() + "))))).\n");
-            }
-        }
-        sb.append("\n");
-
-        sb.append("% Moves in outputs.\n");
-        for (Node node : trainStation.getOuts()) {
-            sb.append("fof(leave_or_stay_at_" + node.getName() + ", axiom, (![T, Train]: (((at(T, Train, " + node.getName() + ") & ~move(T, Train))");
-            sb.append(" => at(succ(T), Train, " + node.getName() + ")) | ((at(T, Train, " + node.getName() + ") & move(T, Train)) => (![N]: (~at(succ(T), Train, N))))))).\n");
-        }
-        sb.append("\n");
-
-        sb.append("% Moves in switches.\n");
+        sb.append("% Possible moves for switch nodes.\n");
         for (Node node : trainStation.getCrossings()) {
-            for (Node next : node.getNext()) {
-                sb.append("fof(move_or_stay_from_" + node.getName() + "_to_" + next.getName() + ", axiom, (![T, Train]: (((at(T, Train, ");
-                sb.append(node.getName() + ") & (switch(T, " + node.getName() + ") = " + next.getName() + ") & ~move(T, Train)) => (at(succ(T), Train, ");
-                sb.append(node.getName() + "))) | ((at(T, Train, " + node.getName() + ") & (switch(T, " + node.getName() + ") = " + next.getName() + ") & ");
-                sb.append("move(T, Train)) => (at(succ(T), Train, " + next.getName() + ")))))).\n");
+            sb.append("fof(moves_" + node.getName() + ", axiom, (![T, Train]: (at(succ(T), Train, " + node.getName() + ") <=> (");
+            int i = 0;
+            for (Node pred : node.getPred()) {
+                i++;
+                sb.append("at(T, Train, " + pred.getName() + ")");
+                if (i != node.getPred().size()) {
+                    sb.append(" | ");
+                }
             }
+            sb.append(")))).\n");
         }
+        sb.append("\n");
+
+        sb.append("% Possible moves for gate nodes.\n");
+        for (Node node : trainStation.getOuts()) {
+            sb.append("fof(moves_" + node.getName() + ", axiom, (![T, Train]: (at(succ(T), Train, " + node.getName() + ") <=> (");
+            int i = 0;
+            for (Node pred : node.getPred()) {
+                i++;
+                sb.append("at(T, Train, " + pred.getName() + ")");
+                if (i != node.getPred().size()) {
+                    sb.append(" | ");
+                }
+            }
+            sb.append(")))).\n");
+        }
+
+
         sb.append("\n\n");
 
         writeToFile(sb.toString(), true);
@@ -331,26 +336,27 @@ public class Axioms {
         sb.append("\n");
 
         sb.append("% No node can be occupied for given path.\n");
+
+
         for (Stack<Node> path : trainStation.getPaths()) {
             Node start = path.get(0);
             Node end = path.get(path.size() - 1);
 
-            sb.append("fof(path_free_from_" + start.getName() + "_to_" + end.getName() + ", axiom, (![T, Train, OtherTrain]: ");
+            sb.append("fof(path_free_from_" + start.getName() + "_to_" + end.getName() + ", axiom, (![T, Train]: ");
             sb.append("(path_free(T, Train, " + start.getName() + ", " + end.getName() + ") <=> (at(T, Train, " + start.getName() + ") & ");
             sb.append("(gate(Train) = " + end.getName() + ") & ");
 
-            list = new ArrayList<>();
-            for (Node node : path) {
-                String string = "(~at(T, OtherTrain, " + node.getName() + ") | (Train = OtherTrain))";
-                list.add(string);
-            }
             i = 0;
-            for (String string : list) {
-                sb.append(string + (i == list.size() - 1 ? "" : " & "));
+            for (Node node : path) {
                 i++;
+                sb.append("node_empty(T, " + node.getName() + ")");
+                if (i != path.size()) {
+                    sb.append(" & ");
+                }
             }
             sb.append(")))).\n");
         }
+
         sb.append("\n");
 
         writeToFile(sb.toString(), true);
